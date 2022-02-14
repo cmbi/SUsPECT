@@ -49,7 +49,7 @@ Do ORF prediction and run VEP ```run_orfpred_and_vep.sh``` script. Run it in the
 
 ### Step 2: Polyphen
 
-Run polyphen using the ```polyphen_wrapper.sh``` script:
+Run polyphen using the ```polyphen_wrapper.sh``` script after editing the script to reflect the number of cores you'd like to use:
 
 ```bash polyphen_wrapper.sh -s orfs.faa polyphen_in_rare.input```
 
