@@ -45,14 +45,30 @@ The long-read transcriptome should preferably be processed with TALON (https://g
 
 Activate your vep_pipeline environment by running ```conda activate vep_pipeline```
 
-Do ORF prediction and run VEP ```run_orfpred_and_vep.sh``` script. Run it in the path where you would like your results. Attention: It assumes all of your novel sequence ids are prefeixed with the word 'novel'.
-
-
+Do ORF prediction and run VEP ```run_orfpred_and_vep.sh``` script. Run it in the path where you would like your results. Attention: It assumes all of your novel sequence ids are prefeixed with the word 'novel'. 
 
 ### Step 2: Polyphen
 
+Run polyphen using the ```polyphen_wrapper.sh``` script:
+
+```bash polyphen_wrapper.sh -s orfs.faa polyphen_in_rare.input```
+
 ### Step 3: Generate output
 
-At the moment, the output generation is a simple python script that adds polyphen and GO annotation to the VEP output and outputs CSV format. In future implementation, the output would be formatted and VEP would be run again.
+At the moment, the output generation is a simple python script that adds polyphen and GO annotation to the VEP output and outputs CSV format. In future implementation, the output would be formatted and VEP would be run again. (TODO)
 
-If you have multiple patients, you must make a patient mapping file
+```
+Usage: python output.py [options]
+
+Options:
+    --vep   VEP output tab file with custom annotation enabled
+    --pp    polyphen output
+    --ab    Abundance file from talon_abundance
+    --pat   patient mapping created by function in vcf_to_ind.py (optional)
+    --hg38  VEP output tab file with cache hg38 only (optional)
+    --go    ensembl to GO mapping file (optional)
+    --xn    exon-level abundances made by variants_in_novel_edges.py (optional)
+    --out   output file name
+```
+The output file is a csv file that will depend on what (optional) inputs were provided.
+The file will contain all the standard vep columns, as well as information from sources provided to the script such as transcript/exon dominance information, hg38 consequence prediction, polyphen output, GO annotation, etc.
