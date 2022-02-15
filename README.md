@@ -1,4 +1,4 @@
-# VEP_custom_annotations
+# VEP custom annotations
 Variant effect prediction based on custom long-read transcriptomes
 
 ## Description:
