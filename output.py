@@ -20,12 +20,12 @@ def read_vep(path):
     return(df.drop(columns=['tmp']).drop_duplicates(subset=['Uploaded_variation','Feature']))
 
 def simple_vep(path):
-        with open(path, 'r') as f:
-            lines = [l for l in f if not l.startswith('##')]
-        df=pd.read_csv(io.StringIO(''.join(lines)),sep='\t',usecols=[0,1,2,6,13]).rename(columns={'#Uploaded_variation': 'Uploaded_variation'})
-        df['Consequence_level']=df.Extra.apply(classify_consequence)
-        df['pp_hg38']=df.Extra.apply(extract_polyphen)
-        return(df.drop(columns=['Extra']).sort_values('Consequence_level',ascending=False).groupby('Uploaded_variation').first())
+    with open(path, 'r') as f:
+        lines = [l for l in f if not l.startswith('##')]
+    df=pd.read_csv(io.StringIO(''.join(lines)),sep='\t',usecols=[0,1,2,6,13]).rename(columns={'#Uploaded_variation': 'Uploaded_variation'})
+    df['Consequence_level']=df.Extra.apply(classify_consequence)
+    df['pp_hg38']=df.Extra.apply(extract_polyphen)
+    return(df.drop(columns=['Extra']).sort_values('Consequence_level',ascending=False).groupby('Uploaded_variation').first())
     
 def extract_af(s):
     for p in s.split(';'):
@@ -43,15 +43,18 @@ def extract_polyphen(extra):
         return(extra.split('(')[0])
     return(None)
 
-def classify_consequence(consequence):
+def classify_consequence(extra):
     '''information about vep consequence classification can be found at https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html#consequences
     '''
-    if consequence in ['transcript_ablation','splice_acceptor_variant','splice_donor_variant','stop_gained','frameshift_variant','stop_lost','start_lost','transcript_amplification']:
-        return(3) #high
-    elif consequence in ['inframe_insertion','inframe_deletion','missense_variant','protein_altering_variant','	regulatory_region_ablation']:
-        return(2) #moderate
-    elif consequence in ['splice_region_variant','incomplete_terminal_codon_variant','start_retained_variant','stop_retained_variant','synonymous_variant']:
-        return(1) #low
+    if 'IMPACT=' in extra:
+        extra=extra.split('IMPACT=')[1]
+        extra=extra.split(';',1)[0]
+        if 'MODERATE' in extra:
+            return(2)
+        elif 'HIGH' in extra:
+            return(3)
+        elif 'LOW' in extra:
+            return(1)
     return(0) #modifier
 
 def mine_info(extra):
