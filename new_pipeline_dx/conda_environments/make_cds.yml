@@ -1,0 +1,10 @@
+#   conda env create -f environment.yml
+name: reference-tables 
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.7.3
+  - biopython
+  - pandas
