@@ -80,15 +80,6 @@ if (params.logit_model.endsWith('.gz')) {
    ch_logit_model_uncompressed = Channel.value(file(params.logit_model))
 }
 
-if (!params.sqanti_fasta == false) {
-   if (params.sqanti_fasta.endsWith('.gz')) {
-      ch_sqanti_fasta = Channel.value(file(params.sqanti_fasta))
-   } else {
-      ch_sqanti_fasta_uncompressed = Channel.value(file(params.sqanti_fasta))
-   }
-}
-
-ch_fastq_reads = Channel.from(params.fastq_read_1, params.fastq_read_2).filter(String).flatMap{ files(it) }
 
 // Implements logic for cloud compatibility, NO_TOML_FILE as variable only works for envs with local file system
 projectDir = workflow.projectDir
@@ -297,12 +288,12 @@ process gtf_for_vep{
     input:
         file(complete_gtf) from ch_lr_annotation_unformatted
     output:
-        file("${params.name}_complete.gtf") into lr_annotation
-        
+      //   file("${params.name}_complete.gtf") into lr_annotation
+        file("*")
 
     script:
         """
-        grep -v "#" $complete_gtf | sort -k1,1 -k4,4n -k5,5n -t$'\t' | bgzip -c > ${complete_gtf}.gz
+        grep -v "#" $complete_gtf | sort -k1,1 -k4,4n -k5,5n -t\$'\t' | bgzip -c > ${complete_gtf}.gz
         tabix -p gff ${complete_gtf}.gz
         """
 }
@@ -312,17 +303,7 @@ Run VEP to get missense substitutions
  * TODO @ Nuno
 ---------------------------------------------------*/
 
-process initial_vep_run{
-
-    input:
-        file(patient_vcf) from ch_vcf_uncompressed
-    output:
-        file() into inital_vep_output
-
-    script:
-   
-
-}
+// include { run_vep } from '../VEP/workflows/run_vep.nf'
 
 /*--------------------------------------------------
 Format missense substitutions to polyphen/sift input
@@ -338,64 +319,75 @@ Format missense substitutions to polyphen/sift input
    * Ideally would like to run vep with no picking, re-write parse_vep.py to process effects of each variant 
    *  on multiple transcripts and decide whether missense is interesting enough to put through sift/polyphen
 ---------------------------------------------------*/
-process format_missense{
+// process format_missense{
 
 
-       input:
-        file(patient_vcf) from ch_vcf_uncompressed
-       output:
-        file() into inital_vep_output
+//        input:
+//         file(patient_vcf) from ch_vcf_uncompressed
+//        output:
+//         file() into inital_vep_output
 
-    script:
-}
+//     script:
+// }
 
 /*--------------------------------------------------
 Run polyphen/sift
  * TODO @ Nuno
 ---------------------------------------------------*/
-process sift_polyphen{
-
-
-}
+// include { pph2 } from '../protein_function/nf_modules/run_polyphen2.nf'
 
 /*--------------------------------------------------
 Format polyphen/sift output to VEP matrix
  * TODO @ Nuno
  * can potentially re-format Mark's perl script for this, contact Mark for help?
 ---------------------------------------------------*/
-process parse_patho_pred{
+// process parse_patho_pred{
 
-       input:
-        file(patient_vcf) from ch_vcf_uncompressed
-       output:
-        file() into inital_vep_output
+//        input:
+//         file(patient_vcf) from ch_vcf_uncompressed
+//        output:
+//         file() into inital_vep_output
 
-    script:
+//     script:
 
-}
+// }
 
 /*--------------------------------------------------
 Run VEP, adding polyphen scores 
  * TODO @ Nuno
 ---------------------------------------------------*/
-process final_vep{
+// process final_vep{
 
-       input:
-        file(patient_vcf) from ch_vcf_uncompressed
-       output:
-        file() into inital_vep_output
+//        input:
+//         file(patient_vcf) from ch_vcf_uncompressed
+//        output:
+//         file() into inital_vep_output
 
-    script:
+//     script:
 
-}
+// }
 
 /*--------------------------------------------------
 Last processing step
  * Output 2 files, one with all results and one with filtered results
  * TODO @ Renee
 ---------------------------------------------------*/
-process gtf_for_vep{
+// process gtf_for_vep{
 
+// }
+
+workflow {
+   // create transcript fasta 
+   create_transcriptome_fasta()
+   // do ORF prediction
+   cpat(create_transcriptome_fasta.out)
+   // make cds gtf out of output
+   make_cds_gtf(cpat.out[0])
+   // combine input gtf with predicted CDS using agat
+   create_final_gtf()
+   // format the GTF for VEP
+   gtf_for_vep()
+   // ...
 }
 
 def logHeader() {
