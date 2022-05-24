@@ -205,7 +205,7 @@ CDS GTF
 ---------------------------------------------------*/
 process make_cds_gtf {
   cpus 1
-  conda 'conda_environments/make_cds.yml'
+  conda 'anaconda::pandas bioconda::gtfparse'
 
   publishDir "${params.outdir}/${params.name}/cds/", mode: 'copy'
 
@@ -252,13 +252,12 @@ VEP pre-formatting
 process gtf_for_vep{
     publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
     cpus 1
-    conda 'bioconda::ensembl-vep'
+    conda 'bioconda::pbgzip bioconda::tabix'
 
     input:
         path complete_gtf
     output:
-      //   path "${params.name}_complete.gtf") into lr_annotation
-        path "*"
+        path "${params.name}_complete.gtf.gz"
 
     script:
         """
@@ -341,7 +340,7 @@ Last processing step
  * Output 2 files, one with all results and one with filtered results
  * TODO @ Renee
 ---------------------------------------------------*/
-// process gtf_for_vep{
+// process vep_to_final_output{
 
 // }
 
@@ -363,7 +362,7 @@ workflow {
    // combine input gtf with predicted CDS using agat
    create_final_gtf(ch_sample_gtf,make_cds_gtf.out)
    // format the GTF for VEP
-   // gtf_for_vep()
+   gtf_for_vep(create_final_gtf.out)
    // run VEP for single aa subs
    // if (params.vcf.endsWith('.gz')) 
    //    gunzip_vcf(params.vcf)
