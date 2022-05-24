@@ -63,25 +63,6 @@ if (!params.logit_model) exit 1, "Cannot find any logit model file for parameter
 if (!params.vcf) exit 1, "Cannot find any vcf file for parameter --vcf: ${params.vcf}"
 ch_normalized_ribo_kallisto = Channel.value(params.vcf)
 
-// if (params.vcf.endsWith('.gz')){
-//    ch_vcf = Channel.value(params.vcf)
-// } else {
-//    ch_vcf_uncompressed = Channel.value(params.vcf)
-// }
-
-// if (params.genome_fasta.endsWith('.gz')){
-//    ch_genome_fasta = Channel.value(params.genome_fasta)
-// } else {
-//    ch_genome_fasta_uncompressed = Channel.value(params.genome_fasta)
-// }
-
-// if (params.logit_model.endsWith('.gz')) {
-//    ch_logit_model = Channel.value(params.logit_model)
-// } else {
-//    ch_logit_model_uncompressed = Channel.value(params.logit_model)
-// }
-
-
 // Implements logic for cloud compatibility, NO_TOML_FILE as variable only works for envs with local file system
 projectDir = workflow.projectDir
 
@@ -237,7 +218,7 @@ process make_cds_gtf {
   
   script:
   """
-  python cpat_to_gtf.py --sample_gtf $sample_gtf --cpat_orfs $cpat_orfs --output_cds ${params.name}_with_cds.gtf 
+  python $workflow.projectDir/scripts/cpat_to_gtf.py --sample_gtf $sample_gtf --cpat_orfs $cpat_orfs --output_cds ${params.name}_with_cds.gtf 
   """
 }
 
@@ -261,7 +242,7 @@ process create_final_gtf{
 
     script:
         """
-        agat_sp_complement_annotations.pl --ref $sample_gtf --add $sample_cds --out "${params.name}_complete.gtf 
+        agat_sp_complement_annotations.pl --ref $sample_gtf --add $sample_cds --out ${params.name}_complete.gtf 
         """
 }
 
