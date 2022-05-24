@@ -50,36 +50,36 @@ log.info ""
 
 
 if (!params.sample_gtf) exit 1, "Cannot find gtf file for parameter --sample_gtf: ${params.sample_gtf}"
-ch_sample_gtf = Channel.value(file(params.sample_gtf))
+ch_sample_gtf = Channel.value(params.sample_gtf)
 
 if (!params.hexamer) exit 1, "Cannot find headmer file for parameter --hexamer: ${params.hexamer}"
-ch_hexamer = Channel.value(file(params.hexamer))
+ch_hexamer = Channel.value(params.hexamer)
 
 if (!params.transdecoder_dir) exit 1, "Cannot find headmer file for parameter --transdecoder_dir: ${params.transdecoder_dir}"
-ch_transdecoder_dir = Channel.value(file(params.transdecoder_dir))
+ch_transdecoder_dir = Channel.value(params.transdecoder_dir)
 
 if (!params.logit_model) exit 1, "Cannot find any logit model file for parameter --logit_model: ${params.logit_model}"
 
 if (!params.vcf) exit 1, "Cannot find any vcf file for parameter --vcf: ${params.vcf}"
-ch_normalized_ribo_kallisto = Channel.value(file(params.vcf))
+ch_normalized_ribo_kallisto = Channel.value(params.vcf)
 
-if (params.vcf.endsWith('.gz')){
-   ch_vcf = Channel.value(file(params.vcf))
-} else {
-   ch_vcf_uncompressed = Channel.value(file(params.vcf))
-}
+// if (params.vcf.endsWith('.gz')){
+//    ch_vcf = Channel.value(params.vcf)
+// } else {
+//    ch_vcf_uncompressed = Channel.value(params.vcf)
+// }
 
-if (params.genome_fasta.endsWith('.gz')){
-   ch_genome_fasta = Channel.value(file(params.genome_fasta))
-} else {
-   ch_genome_fasta_uncompressed = Channel.value(file(params.genome_fasta))
-}
+// if (params.genome_fasta.endsWith('.gz')){
+//    ch_genome_fasta = Channel.value(params.genome_fasta)
+// } else {
+//    ch_genome_fasta_uncompressed = Channel.value(params.genome_fasta)
+// }
 
-if (params.logit_model.endsWith('.gz')) {
-   ch_logit_model = Channel.value(file(params.logit_model))
-} else {
-   ch_logit_model_uncompressed = Channel.value(file(params.logit_model))
-}
+// if (params.logit_model.endsWith('.gz')) {
+//    ch_logit_model = Channel.value(params.logit_model)
+// } else {
+//    ch_logit_model_uncompressed = Channel.value(params.logit_model)
+// }
 
 
 // Implements logic for cloud compatibility, NO_TOML_FILE as variable only works for envs with local file system
@@ -89,65 +89,65 @@ projectDir = workflow.projectDir
 /*--------------------------------------------------
 Decompress Logit Model
 ---------------------------------------------------*/
-if (params.logit_model.endsWith('.gz')) {
-   process gunzip_logit_model {
-      tag "decompress logit model"
-      cpus 1
+// if (params.logit_model.endsWith('.gz')) {
+process gunzip_logit_model {
+   tag "decompress logit model"
+   cpus 1
 
-      input:
-      file(logit_model) from ch_logit_model
+   input:
+   path logit_model
 
-      output:
-      file("*.RData") into ch_logit_model_uncompressed
+   output:
+   path "*.RData"
 
-      script:
-      """
-      gunzip -f ${logit_model}
-      """
-   }
+   script:
+   """
+   gunzip -f ${logit_model}
+   """
 }
+// }
 
 /*--------------------------------------------------
 Decompress VCF file
 ---------------------------------------------------*/
-if (params.vcf.endsWith('.gz')) {
-   process gunzip_vcf {
-      tag "decompress VCF file"
-      cpus 1
+// if (params.vcf.endsWith('.gz')) {
+process gunzip_vcf {
+   tag "decompress VCF file"
+   cpus 1
 
-      input:
-      file(vcf) from ch_vcf
+   input:
+   path vcf
 
-      output:
-      file("*.vcf") into ch_vcf_uncompressed
+   output:
+   path "*.vcf"
 
-      script:
-      """
-      gunzip -f ${vcf}
-      """
-   }
+   script:
+   """
+   gunzip -f ${vcf}
+   """
 }
+// }
 
 /*--------------------------------------------------
 Decompress genome fasta file
 ---------------------------------------------------*/
-if (params.genome_fasta.endsWith('.gz')) {
-   process gunzip_gencome_fasta {
+// if (params.genome_fasta.endsWith('.gz')) {
+process gunzip_genome_fasta {
    tag "decompress gzipped genome fasta"
    cpus 1
 
    input:
-   file(genome_fasta) from ch_genome_fasta
+   path genome_fasta
 
    output:
-   file("*.{fa,fasta}") into ch_genome_fasta_uncompressed
+   path "*.{fa,fasta}"
 
    script:
    """
    gunzip -f ${genome_fasta}
    """
-   }
 }
+// }
 
 
 
@@ -161,12 +161,12 @@ process create_transcriptome_fasta {
   publishDir "${params.outdir}/${params.name}/transcriptome_fasta/", mode: 'copy'
 
   input:
-  file(genome_fasta) from ch_genome_fasta_uncompressed
-  file(sample_gtf) from ch_sample_gtf
-  file(transdecoder_dir) from ch_transdecoder_dir
+  path genome_fasta
+  path sample_gtf
+  path transdecoder_dir
   
   output:
-  file("novel_transcripts.fasta") into ch_sample_fasta
+  path "novel_transcripts.fasta"
   
   script:
   """
@@ -195,31 +195,25 @@ CPAT
 ---------------------------------------------------*/
 process cpat {
   cpus 1
-  conda 'bioconda::cpat'
+  container "quay.io/biocontainers/cpat:3.0.4--py38h17adfb0_1"
   tag "${hexamer}, ${logit_model}, ${sample_fasta}"
 
   publishDir "${params.outdir}/${params.name}/cpat/", mode: 'copy'
 
   input:
-  file(hexamer) from ch_hexamer
-  file(logit_model) from ch_logit_model_uncompressed
-  file(sample_fasta) from ch_sample_fasta_cpat
+  path hexamer
+  path logit_model
+  path sample_fasta
 
   output:
-  file("${params.name}.ORF_prob.tsv") into ch_cpat_all_orfs
-  file("${params.name}.ORF_prob.best.tsv") into ch_cpat_best_orf
-  file("${params.name}.ORF_seqs.fa") into ch_cpat_protein_fasta
-  file("*")
+  path "${params.name}.ORF_prob.tsv"
+  path "${params.name}.ORF_prob.best.tsv"
+  path "${params.name}.ORF_seqs.fa"
+  path "*"
 
   script:
   """
-  cpat.py \
-  -x $hexamer \
-  -d $logit_model \
-  -g $sample_fasta \
-  -o ${params.name} \
-  1> ${params.name}_cpat.output \
-  2> ${params.name}_cpat.error
+  cpat.py -x $hexamer -d $logit_model -g $sample_fasta -o ${params.name} 
   """
 }
 
@@ -235,19 +229,15 @@ process make_cds_gtf {
   publishDir "${params.outdir}/${params.name}/cds/", mode: 'copy'
 
   input:
-    file(sample_gtf) from ch_sample_gtf_cds
-    file(cpat_orfs) from ch_cpat_all_orfs //should I make this best orfs instead of all orfs?
+    path sample_gtf
+    path cpat_orfs //should I make this best orfs instead of all orfs?
   
   output:
-    file("${params.name}_with_cds.gtf") into ch_sample_cds
-    file("*")
+    path "${params.name}_with_cds.gtf"
   
   script:
   """
-  python cpat_to_gtf.py \
-  --sample_gtf $sample_gtf \
-  --cpat_orfs $cpat_orfs \
-  --output_cds ${params.name}_with_cds.gtf 
+  python cpat_to_gtf.py --sample_gtf $sample_gtf --cpat_orfs $cpat_orfs --output_cds ${params.name}_with_cds.gtf 
   """
 }
 
@@ -259,22 +249,19 @@ process create_final_gtf{
     publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
     tag "${params.name} ${reference_gtf} ${sample_gtf}"
     cpus 1
-    conda 'bioconda::agat'
+    container "quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0"
 
     input:
-        file(sample_gtf) from ch_sample_gtf
-        file(sample_cds) from ch_sample_cds
+        path sample_gtf
+        path sample_cds
     output:
-        // file("*")
-        file("${params.name}_complete.gtf") into ch_lr_annotation_unformatted
+        // path "*")
+        path "${params.name}_complete.gtf"
         
 
     script:
         """
-        agat_sp_complement_annotations.pl \
-        --ref $sample_gtf \
-        --add $sample_cds \
-        --out "${params.name}_complete.gtf 
+        agat_sp_complement_annotations.pl --ref $sample_gtf --add $sample_cds --out "${params.name}_complete.gtf 
         """
 }
 
@@ -287,10 +274,10 @@ process gtf_for_vep{
     conda 'bioconda::ensembl-vep'
 
     input:
-        file(complete_gtf) from ch_lr_annotation_unformatted
+        path complete_gtf
     output:
-      //   file("${params.name}_complete.gtf") into lr_annotation
-        file("*")
+      //   path "${params.name}_complete.gtf") into lr_annotation
+        path "*"
 
     script:
         """
@@ -324,9 +311,9 @@ Format missense substitutions to polyphen/sift input
 
 
 //        input:
-//         file(patient_vcf) from ch_vcf_uncompressed
+//         path patient_vcf) from ch_vcf_uncompressed
 //        output:
-//         file() into inital_vep_output
+//         path ) into inital_vep_output
 
 //     script:
 // }
@@ -345,9 +332,9 @@ Format polyphen/sift output to VEP matrix
 // process parse_patho_pred{
 
 //        input:
-//         file(patient_vcf) from ch_vcf_uncompressed
+//         path patient_vcf) from ch_vcf_uncompressed
 //        output:
-//         file() into inital_vep_output
+//         path ) into inital_vep_output
 
 //     script:
 
@@ -360,9 +347,9 @@ Run VEP, adding polyphen scores
 // process final_vep{
 
 //        input:
-//         file(patient_vcf) from ch_vcf_uncompressed
+//         path patient_vcf
 //        output:
-//         file() into inital_vep_output
+//         path 
 
 //     script:
 
@@ -379,15 +366,28 @@ Last processing step
 
 workflow {
    // create transcript fasta 
-   create_transcriptome_fasta()
+   if (params.genome_fasta.endsWith('.gz')) 
+      ch_genome_fasta = Channel.value(gunzip_genome_fasta(params.genome_fasta))
+   else
+      ch_genome_fasta = Channel.value(params.genome_fasta)
+   create_transcriptome_fasta(ch_genome_fasta,ch_sample_gtf,ch_transdecoder_dir)
    // do ORF prediction
-   cpat(create_transcriptome_fasta.out)
+   if (params.logit_model.endsWith('.gz')) 
+      ch_logit_model = Channel.value(gunzip_logit_model(params.logit_model))
+   else
+      ch_logit_model = Channel.value(params.logit_model)
+   cpat(ch_hexamer, ch_logit_model, create_transcriptome_fasta.out)
    // make cds gtf out of output
-   make_cds_gtf(cpat.out[0])
+   make_cds_gtf(ch_sample_gtf,cpat.out[0])
    // combine input gtf with predicted CDS using agat
-   create_final_gtf()
+   create_final_gtf(ch_sample_gtf,make_cds_gtf.out)
    // format the GTF for VEP
-   gtf_for_vep()
+   // gtf_for_vep()
+   // run VEP for single aa subs
+   // if (params.vcf.endsWith('.gz')) 
+   //    gunzip_vcf(params.vcf)
+   // else
+   //    params.vcf
    // ...
 }
 
