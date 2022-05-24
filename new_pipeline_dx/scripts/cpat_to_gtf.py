@@ -119,7 +119,7 @@ def main():
     parser.add_argument("--cpat_orfs", action="store", dest="cpat_orfs") # cpat table output.ORF_prob.tsv
     parser.add_argument("--output_cds", action="store", dest="output_cds")
     results = parser.parse_args()
-    make_pacbio_cds_gtf(results.sample_gtf, results.cpat_orfs, results.talon_gene, results.output_cds)
+    make_pacbio_cds_gtf(results.sample_gtf, results.cpat_orfs, results.output_cds)
 
 if __name__ == "__main__":
     main()
