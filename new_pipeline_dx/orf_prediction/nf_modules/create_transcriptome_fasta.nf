@@ -10,7 +10,6 @@ process create_transcriptome_fasta {
   input:
   path genome_fasta
   path sample_gtf
-  path transdecoder_dir
   
   output:
   path "novel_transcripts.fasta"

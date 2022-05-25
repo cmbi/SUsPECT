@@ -40,7 +40,6 @@ log.info "\nPARAMETERS SUMMARY"
 log.info "genome_fasta                          : ${params.genome_fasta}"
 log.info "hexamer                               : ${params.hexamer}"
 log.info "logit_model                           : ${params.logit_model}"
-log.info "transdecoder_dir                      : ${params.transdecoder_dir}"
 // log.info "max_cpus                              : ${params.max_cpus}"
 log.info "name                                  : ${params.name}"
 log.info "vcf                                   : ${params.vcf}"
@@ -55,9 +54,6 @@ if (!params.sample_gtf && !params.novel_gtf) exit 1, "Cannot find gtf file for p
 
 if (!params.hexamer) exit 1, "Cannot find headmer file for parameter --hexamer: ${params.hexamer}"
 ch_hexamer = Channel.value(params.hexamer)
-
-if (!params.transdecoder_dir) exit 1, "Cannot find headmer file for parameter --transdecoder_dir: ${params.transdecoder_dir}"
-ch_transdecoder_dir = Channel.value(params.transdecoder_dir)
 
 if (!params.logit_model) exit 1, "Cannot find any logit model file for parameter --logit_model: ${params.logit_model}"
 
@@ -84,7 +80,7 @@ workflow {
       ch_genome_fasta = Channel.value(gunzip_genome_fasta(params.genome_fasta))
    else
       ch_genome_fasta = Channel.value(params.genome_fasta)
-   create_transcriptome_fasta(ch_genome_fasta,ch_sample_gtf,ch_transdecoder_dir)
+   create_transcriptome_fasta(ch_genome_fasta,ch_sample_gtf)
    // do ORF prediction
    if (params.logit_model.endsWith('.gz')) 
       ch_logit_model = Channel.value(gunzip_logit_model(params.logit_model))
