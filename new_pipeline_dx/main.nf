@@ -46,11 +46,12 @@ log.info "name                                  : ${params.name}"
 log.info "vcf                                   : ${params.vcf}"
 log.info "outdir                                : ${params.outdir}"
 log.info "sample_gtf                            : ${params.sample_gtf}"
+log.info "novel_gtf                             : ${params.novel_gtf}"
 log.info ""
 
 
-if (!params.sample_gtf) exit 1, "Cannot find gtf file for parameter --sample_gtf: ${params.sample_gtf}"
-ch_sample_gtf = Channel.value(params.sample_gtf)
+if (!params.sample_gtf && !params.novel_gtf) exit 1, "Cannot find gtf file for parameter --sample_gtf: ${params.sample_gtf}"
+// ch_sample_gtf = Channel.value(params.sample_gtf)
 
 if (!params.hexamer) exit 1, "Cannot find headmer file for parameter --hexamer: ${params.hexamer}"
 ch_hexamer = Channel.value(params.hexamer)
@@ -130,7 +131,48 @@ process gunzip_genome_fasta {
 }
 // }
 
+/*--------------------------------------------------
+Find novel transcripts
+For those that want to submit a full GTF file
+ * Takes GTF input and creates a fasta file of cDNA
+---------------------------------------------------*/
+process identify_novel {
+  publishDir "${params.outdir}/${params.name}/novel_gtf/", mode: 'copy'
+  tag "${params.name} ${reference_gtf} ${sample_gtf}"
+  cpus 1
+  conda 'bioconda::gffcompare'
 
+  input:
+      path sample_gtf
+      path reference_gtf
+  output:
+      path "gffcmp.combined.gtf"
+      path "*"
+      
+
+  script:
+      """
+      gffcompare -r $reference_gtf -R -A -T $sample_gtf 
+      """
+}
+
+process filter_novel {
+  publishDir "${params.outdir}/${params.name}/novel_gtf/", mode: 'copy'
+  tag "${params.name} ${reference_gtf} ${sample_gtf}"
+  cpus 1
+  container ""
+
+  input:
+      path novel_marked_gtf
+  output:
+      path "gffcmp.combined.filtered.gtf"
+      
+
+  script:
+      """
+      python -r $workflow.projectDir/scripts/filter_novel.py --gffcompare_gtf $novel_marked_gtf 
+      """
+}
 
 /*--------------------------------------------------
 Create transcript fasta
@@ -154,7 +196,6 @@ process create_transcriptome_fasta {
   $transdecoder_dir/util/gtf_genome_to_cdna_fasta.pl $sample_gtf $genome_fasta > novel_transcripts.fasta
   """
 }
-
 
 /*--------------------------------------------------
 CPAT
@@ -236,7 +277,6 @@ process create_final_gtf{
         path sample_gtf
         path sample_cds
     output:
-        // path "*")
         path "${params.name}_complete.gtf"
         
 
@@ -344,7 +384,21 @@ Last processing step
 
 // }
 
+workflow full_gtf_input {
+  // the case that someone submits a full GTF and wants to use gffcompare to find the sequences that are novel
+  take: full_gtf
+  main: 
+    identify_novel(full_gtf)
+    filter_novel(identify_novel.out[0])
+  emit:
+    filter_novel.out
+}
+
 workflow {
+   if (params.sample_gtf)
+      ch_sample_gtf=Channel.value(full_gtf_input(params.sample_gtf))
+   else
+      ch_sample_gtf=Channel.value(params.novel_gtf)
    // create transcript fasta 
    if (params.genome_fasta.endsWith('.gz')) 
       ch_genome_fasta = Channel.value(gunzip_genome_fasta(params.genome_fasta))
