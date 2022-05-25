@@ -4,7 +4,7 @@ Create transcript fasta
 ---------------------------------------------------*/
 process create_transcriptome_fasta {
   cpus 1
-  conda 'bioconda::transdecoder'
+  container 'quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0'
   publishDir "${params.outdir}/${params.name}/transcriptome_fasta/", mode: 'copy'
 
   input:
@@ -17,6 +17,6 @@ process create_transcriptome_fasta {
   
   script:
   """
-  $transdecoder_dir/util/gtf_genome_to_cdna_fasta.pl $sample_gtf $genome_fasta > novel_transcripts.fasta
+  agat_sp_extract_sequences.pl -g $sample_gtf -f $genome_fasta -o novel_transcripts.fasta -t exon --merge
   """
 }
