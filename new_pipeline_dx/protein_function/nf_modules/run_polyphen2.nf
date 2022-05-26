@@ -28,7 +28,7 @@ process pph2 {
   */
 
   tag "${subs.baseName}"
-  container "${params.singularity_dir}/polyphen2.sif"
+  container "nunoagostinho/polyphen-2:2.2.3"
   containerOptions "--bind $dssp,$wwpdb,$precomputed,$nrdb,$pdb2fasta,$ucsc,$uniprot"
   memory '4 GB'
   errorStrategy 'ignore'
@@ -61,7 +61,7 @@ process weka {
       2) Error '*.err'
   */
 
-  container "${params.singularity_dir}/polyphen2.sif"
+  container "nunoagostinho/polyphen-2:2.2.3"
   errorStrategy 'ignore'
 
   input:

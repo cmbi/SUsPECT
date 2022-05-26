@@ -12,7 +12,7 @@ process alignProteins {
   */
 
   tag "$fasta"
-  container "${params.singularity_dir}/sift.sif" 
+  container "nunoagostinho/sift:6.2.1"
   memory '4 GB'
   errorStrategy 'ignore'
 
@@ -44,7 +44,7 @@ process sift {
   */
 
   tag "${aln}"
-  container "${params.singularity_dir}/sift.sif"
+  container "nunoagostinho/sift:6.2.1"
   memory '4 GB'
   errorStrategy 'ignore'
   publishDir "${params.outdir}/sift"
