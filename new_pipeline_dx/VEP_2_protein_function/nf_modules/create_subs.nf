@@ -4,7 +4,7 @@ process create_subs {
   */
 
   tag "$vcf"
-  // container "biocontainers/bcftools:v1.9-1-deb_cv1"
+  container "quay.io/biocontainers/bcftools:1.15.1--h0ea216a_0"
   memory '4 GB'
   // errorStrategy 'ignore'
 
@@ -15,7 +15,6 @@ process create_subs {
     path '*.subs'
 
   """
-  export BCFTOOLS_PLUGINS=${params.bcftools_plugins}
   bcftools +split-vep $vcf -d -A tab -s :missense \
            -f '%CHROM-%POS %Feature %Protein_position %Amino_acids\n' | \
            sed 's|/|\\t|g' > protein.subs

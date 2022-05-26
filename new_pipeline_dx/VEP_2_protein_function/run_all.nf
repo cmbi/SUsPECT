@@ -6,7 +6,6 @@ nextflow.enable.dsl=2
 
 params.help = false
 params.outdir = "outdir"
-params.bcftools_plugins = "/hps/software/users/ensembl/ensw/C8-MAR21-sandybridge/linuxbrew/Cellar/bcftools/1.12/libexec/bcftools/"
 
 // print usage
 if (params.help) {
