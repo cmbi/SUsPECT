@@ -22,7 +22,7 @@ process splitVCF {
       2) A tabix index for that VCF
   */
   cpus params.cpus
-  container "quay.io/biocontainers/bcftools:1.13--h3a49de5_0"
+  container "quay.io/biocontainers/bcftools:1.15.1--h0ea216a_0"
 
   input:
   val(chr)
