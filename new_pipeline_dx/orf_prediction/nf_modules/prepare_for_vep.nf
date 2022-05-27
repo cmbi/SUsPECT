@@ -1,7 +1,7 @@
 process gtf_for_vep{
     publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
     cpus 1
-    conda 'bioconda::pbgzip bioconda::tabix'
+    container 'quay.io/biocontainers/ensembl-vep:106.1--pl5321h4a94de4_0'
 
     input:
         path complete_gtf

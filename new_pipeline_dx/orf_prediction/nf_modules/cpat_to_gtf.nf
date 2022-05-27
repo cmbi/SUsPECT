@@ -5,7 +5,7 @@ CDS GTF
 ---------------------------------------------------*/
 process make_cds_gtf {
   cpus 1
-  conda 'anaconda::pandas bioconda::gtfparse'
+  container 'quay.io/biocontainers/gtfparse:1.2.1--pyh864c0ab_0'
 
   publishDir "${params.outdir}/${params.name}/cds/", mode: 'copy'
 
