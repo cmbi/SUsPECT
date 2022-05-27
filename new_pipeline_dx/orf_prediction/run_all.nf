@@ -60,6 +60,14 @@ if (!params.logit_model) exit 1, "Cannot find any logit model file for parameter
 if (!params.vcf) exit 1, "Cannot find any vcf file for parameter --vcf: ${params.vcf}"
 ch_normalized_ribo_kallisto = Channel.value(params.vcf)
 
+//import all the stuff
+include { gunzip_genome_fasta; gunzip_logit_model } from './nf_modules/decompression.nf'
+include { identify_novel; filter_novel } from './nf_modules/find_novel_transcripts.nf'
+include { cpat } from './nf_modules/cpat.nf'
+include { create_transcriptome_fasta } from './nf_modules/create_transcriptome_fasta.nf'
+include { make_cds_gtf; get_fasta } from './nf_modules/cpat_to_gtf.nf'
+include { gtf_for_vep } from './nf_modules/prepare_for_vep.nf'
+
 workflow full_gtf_input {
   // the case that someone submits a full GTF and wants to use gffcompare to find the sequences that are novel
   take: full_gtf
