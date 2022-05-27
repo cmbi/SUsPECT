@@ -37,6 +37,6 @@ process filter_novel {
 
   script:
       """
-      python -r $workflow.projectDir/orf_prediction/scripts/filter_novel.py --gffcompare_gtf $novel_marked_gtf 
+      python -r $workflow.projectDir/cripts/filter_novel.py --gffcompare_gtf $novel_marked_gtf 
       """
 }

@@ -18,7 +18,7 @@ process make_cds_gtf {
   
   script:
   """
-  python $workflow.projectDir/orf_prediction/scripts/cpat_to_gtf.py --sample_gtf $sample_gtf --cpat_orfs $cpat_orfs --output_cds ${params.name}_with_cds.gtf 
+  python $workflow.projectDir/scripts/cpat_to_gtf.py --sample_gtf $sample_gtf --cpat_orfs $cpat_orfs --output_cds ${params.name}_with_cds.gtf 
   """
 }
 
