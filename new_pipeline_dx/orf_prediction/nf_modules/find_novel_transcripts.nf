@@ -37,6 +37,15 @@ process filter_novel {
 
   script:
       """
-      python -r $workflow.projectDir/scripts/filter_novel.py --gffcompare_gtf $novel_marked_gtf 
+      #!/usr/bin/env python3
+
+      import pandas as pd
+      import gtfparse
+      
+      combined=gtfparse.read_gtf('$novel_marked_gtf')
+      exclude=combined[combined['class_code']=='=']['transcript_id'].unique()
+      combined=combined[~combined['transcript_id'].isin(exclude)]
+      df=pd.read_table('$novel_marked_gtf', names=['seqname','source','feature','start','end','score','strand','frame','extra'])
+      df.merge(combined[['seqname','source','feature','start','end']]).to_csv('gffcmp.combined.filtered.gtf',sep='\t',index=False,header=False)
       """
 }
