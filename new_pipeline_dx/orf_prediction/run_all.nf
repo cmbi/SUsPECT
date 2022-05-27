@@ -6,8 +6,9 @@
  *
  * @authors
  * Renee Salz
- * Nuno Saraiva-Agostinho
  */
+
+nextflow.enable.dsl=2
 
 def helpMessage() {
     log.info logHeader()
@@ -38,6 +39,7 @@ log.info "====================================="
 // Header log info
 log.info "\nPARAMETERS SUMMARY"
 log.info "genome_fasta                          : ${params.genome_fasta}"
+log.info "reference_gtf                          : ${params.reference_gtf}"
 log.info "hexamer                               : ${params.hexamer}"
 log.info "logit_model                           : ${params.logit_model}"
 // log.info "max_cpus                              : ${params.max_cpus}"
@@ -49,8 +51,10 @@ log.info "novel_gtf                             : ${params.novel_gtf}"
 log.info ""
 
 
-if (!params.sample_gtf && !params.novel_gtf) exit 1, "Cannot find gtf file for parameter --sample_gtf: ${params.sample_gtf}"
+if (!params.sample_gtf && !params.novel_gtf) exit 1, "Must submit either --sample_gtf or --novel_gtf"
 // ch_sample_gtf = Channel.value(params.sample_gtf)
+
+if ((params.reference_gtf && !params.sample_gtf)|(!params.reference_gtf && params.sample_gtf)) exit 1, "If parameter --sample_gtf is provided, --reference_gtf must also be given"
 
 if (!params.hexamer) exit 1, "Cannot find headmer file for parameter --hexamer: ${params.hexamer}"
 ch_hexamer = Channel.value(params.hexamer)
@@ -65,22 +69,25 @@ include { gunzip_genome_fasta; gunzip_logit_model } from './nf_modules/decompres
 include { identify_novel; filter_novel } from './nf_modules/find_novel_transcripts.nf'
 include { cpat } from './nf_modules/cpat.nf'
 include { create_transcriptome_fasta } from './nf_modules/create_transcriptome_fasta.nf'
-include { make_cds_gtf; get_fasta } from './nf_modules/cpat_to_gtf.nf'
+include { make_cds_gtf; create_final_gtf } from './nf_modules/cpat_to_gtf.nf'
 include { gtf_for_vep } from './nf_modules/prepare_for_vep.nf'
 
 workflow full_gtf_input {
-  // the case that someone submits a full GTF and wants to use gffcompare to find the sequences that are novel
-  take: full_gtf
+  // if submit a full GTF, use gffcompare to find the sequences that are novel
+  take: 
+    full_gtf
+    reference_gtf
   main: 
-    identify_novel(full_gtf)
+    identify_novel(full_gtf,reference_gtf)
     filter_novel(identify_novel.out[0])
   emit:
     filter_novel.out
 }
 
 workflow {
+   // if full gtf was submitted, extract only novel sequences
    if (params.sample_gtf)
-      ch_sample_gtf=Channel.value(full_gtf_input(params.sample_gtf))
+      ch_sample_gtf=Channel.value(full_gtf_input(params.sample_gtf,params.reference_gtf))
    else
       ch_sample_gtf=Channel.value(params.novel_gtf)
    // create transcript fasta 
