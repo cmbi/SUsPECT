@@ -47,14 +47,14 @@ log.info "name                                  : ${params.name}"
 log.info "vcf                                   : ${params.vcf}"
 log.info "outdir                                : ${params.outdir}"
 log.info "sample_gtf                            : ${params.sample_gtf}"
-log.info "novel_gtf                             : ${params.novel_gtf}"
 log.info ""
 
 
-if (!params.sample_gtf && !params.novel_gtf) exit 1, "Must submit either --sample_gtf or --novel_gtf"
-// ch_sample_gtf = Channel.value(params.sample_gtf)
+if (!params.sample_gtf) exit 1, "Must submit sample gtf"
+ch_sample_gtf = Channel.value(params.sample_gtf)
 
-if ((params.reference_gtf && !params.sample_gtf)|(!params.reference_gtf && params.sample_gtf)) exit 1, "If parameter --sample_gtf is provided, --reference_gtf must also be given"
+if (!params.reference_gtf) exit 1, "A reference gtf must be provided to determine novelty"
+ch_reference_gtf= Channel.value(params.reference_gtf)
 
 if (!params.hexamer) exit 1, "Cannot find headmer file for parameter --hexamer: ${params.hexamer}"
 ch_hexamer = Channel.value(params.hexamer)
@@ -72,30 +72,16 @@ include { create_transcriptome_fasta } from './nf_modules/create_transcriptome_f
 include { make_cds_gtf; create_final_gtf } from './nf_modules/cpat_to_gtf.nf'
 include { gtf_for_vep } from './nf_modules/prepare_for_vep.nf'
 
-workflow full_gtf_input {
-  // if submit a full GTF, use gffcompare to find the sequences that are novel
-  take: 
-    full_gtf
-    reference_gtf
-  main: 
-    identify_novel(full_gtf,reference_gtf)
-    filter_novel(identify_novel.out[0])
-  emit:
-    filter_novel.out
-}
-
 workflow {
-   // if full gtf was submitted, extract only novel sequences
-   if (params.sample_gtf)
-      ch_sample_gtf=Channel.value(full_gtf_input(params.sample_gtf,params.reference_gtf))
-   else
-      ch_sample_gtf=Channel.value(params.novel_gtf)
+   // extract only novel sequences
+   identify_novel(ch_sample_gtf,ch_reference_gtf)
+   filter_novel(identify_novel.out[0])
    // create transcript fasta 
    if (params.genome_fasta.endsWith('.gz')) 
       ch_genome_fasta = Channel.value(gunzip_genome_fasta(params.genome_fasta))
    else
       ch_genome_fasta = Channel.value(params.genome_fasta)
-   create_transcriptome_fasta(ch_genome_fasta,ch_sample_gtf)
+   create_transcriptome_fasta(ch_genome_fasta,filter_novel.out)
    // do ORF prediction
    if (params.logit_model.endsWith('.gz')) 
       ch_logit_model = Channel.value(gunzip_logit_model(params.logit_model))
