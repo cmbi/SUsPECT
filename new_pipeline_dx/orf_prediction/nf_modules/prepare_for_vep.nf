@@ -6,11 +6,12 @@ process gtf_for_vep{
     input:
         path complete_gtf
     output:
-        path "${params.name}_complete.gtf.gz"
+        path "novel_complete.gtf.gz"
+        path "novel_complete.gtf.gz.tbi"
 
     script:
         """
-        grep -v "#" $complete_gtf | sort -k1,1 -k4,4n -k5,5n -t\$'\t' | bgzip -c > ${complete_gtf}.gz
-        tabix -p gff ${complete_gtf}.gz
+        grep -v "#" $complete_gtf | sort -k1,1 -k4,4n -k5,5n -t\$'\t' | bgzip -c > novel_complete.gtf.gz
+        tabix -p gff novel_complete.gtf.gz
         """
 }
