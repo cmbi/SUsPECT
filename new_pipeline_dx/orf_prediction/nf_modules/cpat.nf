@@ -19,8 +19,7 @@ CPAT
 process cpat {
   cpus 1
   container "quay.io/biocontainers/cpat:3.0.4--py38h17adfb0_1"
-  tag "${hexamer}, ${logit_model}, ${sample_fasta}"
-
+  
   publishDir "${params.outdir}/${params.name}/cpat/", mode: 'copy'
 
   input:
