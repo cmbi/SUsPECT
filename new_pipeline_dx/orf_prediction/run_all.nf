@@ -47,13 +47,20 @@ log.info "name                                  : ${params.name}"
 log.info "vcf                                   : ${params.vcf}"
 log.info "outdir                                : ${params.outdir}"
 log.info "sample_gtf                            : ${params.sample_gtf}"
+log.info "check_novel                           : ${params.check_novel}"
 log.info ""
 
 
 if (!params.sample_gtf) exit 1, "Must submit sample gtf"
 ch_sample_gtf = Channel.value(params.sample_gtf)
 
-if (!params.reference_gtf) exit 1, "A reference gtf must be provided to determine novelty"
+// if (params.check_novel=='no' | params.check_novel=='No' | params.check_novel=='false')
+//    check_novel=false
+// else
+//    check_novel=true
+
+
+if (!params.reference_gtf && params.check_novel) exit 1, "A reference gtf must be provided to determine novelty"
 ch_reference_gtf= Channel.value(params.reference_gtf)
 
 if (!params.hexamer) exit 1, "Cannot find headmer file for parameter --hexamer: ${params.hexamer}"
@@ -61,8 +68,8 @@ ch_hexamer = Channel.value(params.hexamer)
 
 if (!params.logit_model) exit 1, "Cannot find any logit model file for parameter --logit_model: ${params.logit_model}"
 
-if (!params.vcf) exit 1, "Cannot find any vcf file for parameter --vcf: ${params.vcf}"
-ch_normalized_ribo_kallisto = Channel.value(params.vcf)
+// if (!params.vcf) exit 1, "Cannot find any vcf file for parameter --vcf: ${params.vcf}"
+// ch_vcf = Channel.value(params.vcf)
 
 //import all the stuff
 include { gunzip_genome_fasta; gunzip_logit_model } from './nf_modules/decompression.nf'
@@ -72,10 +79,21 @@ include { create_transcriptome_fasta } from './nf_modules/create_transcriptome_f
 include { make_cds_gtf; create_final_gtf } from './nf_modules/cpat_to_gtf.nf'
 include { gtf_for_vep } from './nf_modules/prepare_for_vep.nf'
 
+workflow full_gtf_input {
+   take: 
+    full_gtf
+    reference_gtf
+   main:
+    identify_novel(full_gtf,reference_gtf)
+    filter_novel(identify_novel.out[0])
+   emit:
+    filter_novel.out
+}
+
 workflow {
-   // extract only novel sequences
+   // extract novel sequences from input
    identify_novel(ch_sample_gtf,ch_reference_gtf)
-   filter_novel(identify_novel.out[0])
+   filter_novel(identify_novel.out[0],ch_sample_gtf)
    // create transcript fasta 
    if (params.genome_fasta.endsWith('.gz')) 
       ch_genome_fasta = Channel.value(gunzip_genome_fasta(params.genome_fasta))
@@ -89,9 +107,9 @@ workflow {
       ch_logit_model = Channel.value(params.logit_model)
    cpat(ch_hexamer, ch_logit_model, create_transcriptome_fasta.out)
    // make cds gtf out of output
-   make_cds_gtf(ch_sample_gtf,cpat.out[0])
+   make_cds_gtf(filter_novel.out,cpat.out[0])
    // combine input gtf with predicted CDS using agat
-   create_final_gtf(ch_sample_gtf,make_cds_gtf.out)
+   create_final_gtf(filter_novel.out,make_cds_gtf.out)
    // format the GTF for VEP
    gtf_for_vep(create_final_gtf.out)
    // run VEP for single aa subs
