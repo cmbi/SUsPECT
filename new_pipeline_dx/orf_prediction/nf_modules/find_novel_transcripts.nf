@@ -55,10 +55,10 @@ process filter_novel {
       #determine the novel seqs and save them
       combined=gtfparse.read_gtf('$novel_marked_gtf')
       exclude=combined[combined['class_code']=='=']['transcript_id'].unique()
-      combined=combined[~combined['transcript_id'].isin(exclude)]
-      combined=combined[combined['oId'].astype(bool)]
-      acceptable_genes=combined.gene_name.unique()
-      acceptable_transcripts=combined.oId.unique()
+      new_set=combined[~combined['transcript_id'].isin(exclude)]
+      new_set=new_set[new_set['oId'].astype(bool)]
+      acceptable_genes=new_set.gene_name.unique()
+      acceptable_transcripts=new_set.oId.unique()
       #filter the gtf
       old=gtfparse.read_gtf('$sample_gtf')
       old=old[((old.gene_name.isin(acceptable_genes))&(old.feature=='gene'))|(old.transcript_id.isin(acceptable_transcripts))]
@@ -67,5 +67,26 @@ process filter_novel {
       df=pd.read_table('$sample_gtf', names=['seqname','source','feature','start','end','score','strand','frame','extra'])
       df['extra']=df['extra'].apply(upper_tid) #make everything upper case to prepare for CPAT
       df.merge(old[['seqname','feature','start','end']]).drop_duplicates().to_csv('gffcmp.combined.filtered.gtf',sep='\t',index=False,header=False, quoting=csv.QUOTE_NONE, quotechar="",  escapechar="")
+      """
+}
+
+/*--------------------------------------------------
+Clean gtf/gff file
+ * removes identical isoforms/cleans up
+---------------------------------------------------*/
+process clean_gxf {
+  publishDir "${params.outdir}/${params.name}/novel_gtf/", mode: 'copy'
+  cpus 1
+  container 'quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0'
+
+  input:
+      path novel_gtf_raw
+  output:
+      path "gffcmp.combined.filtered.fixed.gtf"
+      
+
+  script:
+      """
+      agat_convert_sp_gxf2gxf.pl -g $novel_gtf_raw --tabix --gvi --gvo -o gffcmp.combined.filtered.fixed.gtf
       """
 }
