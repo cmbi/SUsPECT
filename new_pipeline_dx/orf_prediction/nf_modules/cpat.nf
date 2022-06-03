@@ -1,3 +1,20 @@
+process convert_to_bed {
+  cpus 1
+  container 'quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0'
+  publishDir "${params.outdir}/${params.name}/transcriptome_fasta/", mode: 'copy'
+
+  input:
+  path sample_gtf_cleaned
+  
+  output:
+  path "novel_transcripts.bed"
+  
+  script:
+  """
+  agat_convert_sp_gff2bed.pl --gff $sample_gtf_cleaned -o novel_transcripts.bed
+  """
+}
+
 /*--------------------------------------------------
 CPAT
  * CPAT is a bioinformatics tool to predict an RNA’s coding probability 
@@ -25,16 +42,17 @@ process cpat {
   input:
   path hexamer
   path logit_model
-  path sample_fasta
+  path sample_bed
+  path reference_fasta
 
   output:
-  path "${params.name}.ORF_prob.tsv"
-  path "${params.name}.ORF_prob.best.tsv"
-  path "${params.name}.ORF_seqs.fa"
+  path "novel_seqs.ORF_prob.tsv"
+  path "novel_seqs.ORF_prob.best.tsv"
+  path "novel_seqs.ORF_seqs.fa"
   path "*"
 
   script:
   """
-  cpat.py -x $hexamer -d $logit_model -g $sample_fasta -o ${params.name} 
+  cpat.py -x $hexamer -d $logit_model -g $sample_bed -r $reference_fasta -o novel_seqs 
   """
 }
