@@ -47,21 +47,25 @@ log.info "name                                  : ${params.name}"
 log.info "vcf                                   : ${params.vcf}"
 log.info "outdir                                : ${params.outdir}"
 log.info "sample_gtf                            : ${params.sample_gtf}"
-log.info "check_novel                           : ${params.check_novel}"
+log.info "talon_gtf                             : ${params.talon_gtf}"
+log.info "talon_idprefix                        : ${params.talon_idprefix}"
 log.info ""
 
 
-if (!params.sample_gtf) exit 1, "Must submit sample gtf"
-ch_sample_gtf = Channel.value(params.sample_gtf)
-
-// if (params.check_novel=='no' | params.check_novel=='No' | params.check_novel=='false')
-//    check_novel=false
-// else
-//    check_novel=true
+if (!params.sample_gtf && !params.talon_gtf) exit 1, "Must submit sample gtf"
 
 
-if (!params.reference_gtf && params.check_novel) exit 1, "A reference gtf must be provided to determine novelty"
-ch_reference_gtf= Channel.value(params.reference_gtf)
+if ((params.talon_gtf && !params.talon_idprefix)|(!params.talon_gtf && params.talon_idprefix)) exit 1, "When submitting a talon gtf, novel id prefix must also be provided (and vice versa)"
+
+if (!params.reference_gtf && params.sample_gtf) exit 1, "A reference gtf must be provided to determine novelty"
+
+if (params.talon_gtf)
+   ch_talon_gtf=Channel.value(params.talon_gtf)
+   ch_talon_idprefix=Channel.value(params.talon_idprefix)
+
+if (params.sample_gtf)
+   ch_sample_gtf=Channel.value(params.sample_gtf)
+   ch_reference_gtf=Channel.value(params.reference_gtf)
 
 if (!params.hexamer) exit 1, "Cannot find headmer file for parameter --hexamer: ${params.hexamer}"
 ch_hexamer = Channel.value(params.hexamer)
@@ -73,10 +77,10 @@ if (!params.logit_model) exit 1, "Cannot find any logit model file for parameter
 
 //import all the stuff
 include { gunzip_genome_fasta; gunzip_logit_model } from './nf_modules/decompression.nf'
-include { identify_novel; filter_novel } from './nf_modules/find_novel_transcripts.nf'
-include { cpat } from './nf_modules/cpat.nf'
-include { create_transcriptome_fasta } from './nf_modules/create_transcriptome_fasta.nf'
-include { make_cds_gtf; create_final_gtf } from './nf_modules/cpat_to_gtf.nf'
+include { identify_novel; filter_novel; clean_gxf } from './nf_modules/find_novel_transcripts.nf'
+include { fetch_novel; uppercase } from './nf_modules/process_talon.nf'
+include { convert_to_bed; cpat } from './nf_modules/cpat.nf'
+include { cpat_to_bed; bed_to_gff; merge_cds_with_rest; create_final_gff } from './nf_modules/cpat_to_gtf.nf'
 include { gtf_for_vep } from './nf_modules/prepare_for_vep.nf'
 
 workflow full_gtf_input {
@@ -86,32 +90,53 @@ workflow full_gtf_input {
    main:
     identify_novel(full_gtf,reference_gtf)
     filter_novel(identify_novel.out[0])
+    clean_gxf(filter_novel.out)
    emit:
-    filter_novel.out
+    clean_gxf.out
 }
 
+workflow talon_gtf_input {
+   take:
+    talon_gtf
+    prefix
+   main:
+    fetch_novel(talon_gtf,prefix)
+    uppercase(fetch_novel.out)
+   emit:
+    uppercase.out
+}
+
+
 workflow {
-   // extract novel sequences from input
-   identify_novel(ch_sample_gtf,ch_reference_gtf)
-   filter_novel(identify_novel.out[0],ch_sample_gtf)
-   // create transcript fasta 
+   if (params.talon_gtf) {
+      talon_gtf_input(ch_talon_gtf,ch_talon_idprefix)
+      input_ch=ch_talon_gtf
+      ch_novel_gtf=talon_gtf_input.out
+   }
+   else {
+      full_gtf_input(ch_sample_gtf,ch_reference_gtf)
+      input_ch=ch_sample_gtf
+      ch_novel_gtf=full_gtf_input.out
+   }
+   // do ORF prediction
    if (params.genome_fasta.endsWith('.gz')) 
       ch_genome_fasta = Channel.value(gunzip_genome_fasta(params.genome_fasta))
    else
       ch_genome_fasta = Channel.value(params.genome_fasta)
-   create_transcriptome_fasta(ch_genome_fasta,filter_novel.out)
-   // do ORF prediction
    if (params.logit_model.endsWith('.gz')) 
       ch_logit_model = Channel.value(gunzip_logit_model(params.logit_model))
    else
       ch_logit_model = Channel.value(params.logit_model)
-   cpat(ch_hexamer, ch_logit_model, create_transcriptome_fasta.out)
-   // make cds gtf out of output
-   make_cds_gtf(filter_novel.out,cpat.out[0])
-   // combine input gtf with predicted CDS using agat
-   create_final_gtf(filter_novel.out,make_cds_gtf.out)
+   convert_to_bed(ch_novel_gtf)
+   cpat(ch_hexamer, ch_logit_model, convert_to_bed.out, ch_genome_fasta)
+   // make cds gff out of output
+   cpat_to_bed(convert_to_bed.out,cpat.out[0])
+   bed_to_gff(cpat_to_bed.out)
+   // combine input gtf with predicted CDS
+   merge_cds_with_rest(bed_to_gff.out, input_ch)
+   create_final_gff(merge_cds_with_rest.out)
    // format the GTF for VEP
-   gtf_for_vep(create_final_gtf.out)
+   gtf_for_vep(create_final_gff.out)
    // run VEP for single aa subs
    // if (params.vcf.endsWith('.gz')) 
    //    gunzip_vcf(params.vcf)
