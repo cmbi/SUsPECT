@@ -4,14 +4,14 @@ process gtf_for_vep{
     container 'quay.io/biocontainers/ensembl-vep:106.1--pl5321h4a94de4_0'
 
     input:
-        path complete_gtf
+        path complete_gff
     output:
-        path "novel_complete.gtf.gz"
-        path "novel_complete.gtf.gz.tbi"
+        path "novel_complete.gff.gz"
+        path "novel_complete.gff.gz.tbi"
 
     script:
         """
-        grep -v "#" $complete_gtf | sort -k1,1 -k4,4n -k5,5n -t\$'\t' | bgzip -c > novel_complete.gtf.gz
-        tabix -p gff novel_complete.gtf.gz
+        grep -v "#" $complete_gff | sort -k1,1 -k4,4n -k5,5n -t\$'\t' | bgzip -c > novel_complete.gff.gz
+        tabix -p gff novel_complete.gff.gz
         """
 }
