@@ -12,12 +12,12 @@ params.help = false
 params.cpus = 1
 params.outdir = "outdir"
 params.vep_config="nf_config/vep.ini"
+params.chros = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y,MT"
 
 // module imports
 include { splitVCF } from '../nf_modules/split_into_chros.nf' 
 include { mergeVCF } from '../nf_modules/merge_chros_VCF.nf'  
 include { chrosVEP } from '../nf_modules/run_vep_chros.nf'
-//include { filter_first_vep } from '../nf_modules/filter.nf'
 
  // print usage
 if (params.help) {
@@ -30,7 +30,6 @@ if (params.help) {
   log.info ''
   log.info 'Options:'
   log.info '  --vcf VCF                 VCF that will be split. Currently supports sorted and bgzipped file'
-  log.info '  --gff GFF                 GFF file with custom annotations'
   log.info '  --outdir DIRNAME          Name of output dir. Default: outdir'
   log.info '  --vep_config FILENAME     VEP config file. Default: nf_config/vep.ini'
   log.info '  --chros LIST_OF_CHROS	Comma-separated list of chromosomes to generate. i.e. 1,2,... Default: 1,2,...,X,Y,MT'
@@ -51,10 +50,10 @@ if( !vcfFile.exists() ) {
   exit 1, "The specified VCF file does not exist: ${params.vcf}"
 }
 
-gffFile = file(params.gff) //TODO add input of gff file
-if( !vcfFile.exists() ) {
-  exit 1, "The specified GFF file does not exist: ${params.vcf}"
-}
+//gtfFile = file(params.gtf)
+//if( !gtfFile.exists() ) {
+//  exit 1, "The specified GTF file does not exist: ${params.gtf}"
+//}
 
 check_bgzipped = "bgzip -t $params.vcf".execute()
 check_bgzipped.waitFor()
@@ -83,14 +82,11 @@ workflow run_vep {
   main:
     chr_str = params.chros.toString()
     chr = Channel.of(chr_str.split(',')).view()
-    // should there be a step like orf_prediction/nf_modules/prepare_for_vep? i think that module can be moved here.
     splitVCF(chr, file( params.vcf ), file( vcf_index ))
     chrosVEP(splitVCF.out, vep_config)
     mergeVCF(chrosVEP.out.vcfFile.collect(), chrosVEP.out.indexFile.collect())
-    // filter_first_vep(gffFile, mergeVCF.out.vcfFile)
   emit:
     vcfFile = mergeVCF.out.vcfFile
-    //filter_first_vep.out[0]
     indexFile = mergeVCF.out.indexFile
 }
 
