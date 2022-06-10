@@ -19,8 +19,17 @@ def helpMessage() {
     log.info """
     Usage:
     The typical command for running the pipeline is as follows:
-      
-      #TODO
+
+      nextflow run_all.nf -resume \
+         --name test \
+         --outdir testing/ \
+         --hexamer input/Human_Hexamer.tsv \
+         --logit_model input/Human_logitModel.RData \
+         --talon_gtf input/filtered_talon_observedOnly.gtf \
+         --talon_idprefix novel \
+         --genome_fasta input/hg38.fa.gz \
+         --vcf input/homo_sapiens_GRCh38.vcf.gz \
+         --vep_dir_cache input/vep_cache
 
     Other:
 
@@ -28,7 +37,7 @@ def helpMessage() {
       --max_memory                  Maximum memory (memory unit)
       --max_time                    Maximum time (time unit)
 
-    See here for more info: 
+    See here for more info: https://github.com/cmbi/VEP_custom_annotations
     """.stripIndent()
 }
 
