@@ -17,7 +17,7 @@ params.vep_config="nf_config/vep.ini"
 include { splitVCF } from '../nf_modules/split_into_chros.nf' 
 include { mergeVCF } from '../nf_modules/merge_chros_VCF.nf'  
 include { chrosVEP } from '../nf_modules/run_vep_chros.nf'
-include { filter_first_vep } from '../nf_modules/filter.nf'
+//include { filter_first_vep } from '../nf_modules/filter.nf'
 
  // print usage
 if (params.help) {
@@ -79,21 +79,21 @@ if( !vepFile.exists() ) {
 log.info 'Starting workflow.....'
 
 workflow run_vep {
+  take: vep_config
   main:
     chr_str = params.chros.toString()
     chr = Channel.of(chr_str.split(',')).view()
     // should there be a step like orf_prediction/nf_modules/prepare_for_vep? i think that module can be moved here.
     splitVCF(chr, file( params.vcf ), file( vcf_index ))
-    chrosVEP(splitVCF.out, file( params.vep_config ))
+    chrosVEP(splitVCF.out, vep_config)
     mergeVCF(chrosVEP.out.vcfFile.collect(), chrosVEP.out.indexFile.collect())
-    filter_first_vep(gffFile, mergeVCF.out.vcfFile)
+    // filter_first_vep(gffFile, mergeVCF.out.vcfFile)
   emit:
-    // vcfFile = mergeVCF.out.vcfFile
-    filter_first_vep.out[0]
+    vcfFile = mergeVCF.out.vcfFile
+    //filter_first_vep.out[0]
     indexFile = mergeVCF.out.indexFile
-
-}  
+}
 
 workflow {
-  run_vep()
+  run_vep( file( params.vep_config ) )
 }

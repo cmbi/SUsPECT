@@ -31,9 +31,4 @@ process getTranslation {
     agat_sp_extract_sequences.pl -g $gtf -f $fasta --protein \
                                  -o ${gtf.baseName}_translated.fa
     """
-
-  stub:
-    """
-    cp /homes/nuno/workspace/sift-polyphen2-nextflow-vep-4667/ensembl-vep/nextflow/protein_function/outdir/translated.fa .
-    """
 }
