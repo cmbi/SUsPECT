@@ -2,6 +2,7 @@ process convert_to_bed {
   cpus 1
   container 'quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0'
   publishDir "${params.outdir}/${params.name}/transcriptome_fasta/", mode: 'copy'
+  memory '4 GB'
 
   input:
   path sample_gtf_cleaned
