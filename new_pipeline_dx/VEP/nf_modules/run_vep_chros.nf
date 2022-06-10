@@ -10,6 +10,7 @@ nextflow.enable.dsl=2
 prefix = "vep"
 params.outdir = ""
 params.cpus = 1
+params.vep_dir_cache = "${HOME}/.vep"
 
 process chrosVEP {
   /*
@@ -45,7 +46,7 @@ process chrosVEP {
   }
   else {
     """
-    vep -i ${vcfFile} -o ${prefix}-${vcfFile} --vcf --compress_output bgzip --format vcf --config ${vep_config}
+    vep -i ${vcfFile} -o ${prefix}-${vcfFile} --vcf --compress_output bgzip --format vcf --config ${vep_config} --cache --dir_cache ${params.vep_dir_cache}
     tabix -p vcf ${prefix}-${vcfFile}
     """	
   }
