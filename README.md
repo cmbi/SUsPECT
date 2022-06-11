@@ -3,7 +3,7 @@ Variant effect prediction based on custom long-read transcriptomes improves clin
 
 ## Description:
 
- Long-read transcriptomes often contain many new transcripts, particularly those derived from samples containing less well-studied tissues/conditions. This has implications for variant effect predictions. Variant effects may change with new or updated transcript annotations. This Nextflow pipeline runs VEP using your transcript file and appends missense effect predictions to it using a variety of Singularity containers.
+ Long-read transcriptomes often contain lots of novelty- especially in samples containing less well-studied tissues/conditions. This has implications for variant effect predictions. Variant effects may change with new or updated transcript annotations. This Nextflow pipeline runs VEP using your transcript file and appends missense effect predictions. The output may help expose potentially disease-causing variants that were previously overlooked.
 
 ## Installation:
 
