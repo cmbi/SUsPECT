@@ -60,3 +60,7 @@ nextflow run_all.nf \
 The pipeline automatically downloads the required Singularity containers.
 
 A final VCF output will contain VEP annotation with PolyPhen-2 scores.
+
+## Contact:
+
+In case of questions, requests or comments please open a github issue or contact Renee Salz directly at renee.salz@radboudumc.nl
