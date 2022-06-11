@@ -44,7 +44,7 @@ process merge_cds_with_rest {
   publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
   cpus 1
   container 'quay.io/biocontainers/gtfparse:1.2.1--pyh864c0ab_0'
-
+  memory '4 GB'
 
   input:
       path novel_cds_gff
@@ -113,6 +113,7 @@ process create_final_gff{
   publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
   cpus 1
   container "quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0"
+  memory '8 GB'
 
   input:
       path unsorted_gff

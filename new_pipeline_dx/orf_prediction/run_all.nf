@@ -10,13 +10,26 @@
 
 nextflow.enable.dsl=2
 
+params.help = null
+params.vep_config = "../VEP/nf_config/vep.ini"
+params.vcf = null
+
 def helpMessage() {
     log.info logHeader()
     log.info """
     Usage:
     The typical command for running the pipeline is as follows:
-      
-      #TODO
+
+      nextflow run_all.nf -resume \
+         --name test \
+         --outdir testing/ \
+         --hexamer input/Human_Hexamer.tsv \
+         --logit_model input/Human_logitModel.RData \
+         --talon_gtf input/filtered_talon_observedOnly.gtf \
+         --talon_idprefix novel \
+         --genome_fasta input/hg38.fa.gz \
+         --vcf input/homo_sapiens_GRCh38.vcf.gz \
+         --vep_dir_cache input/vep_cache
 
     Other:
 
@@ -24,7 +37,7 @@ def helpMessage() {
       --max_memory                  Maximum memory (memory unit)
       --max_time                    Maximum time (time unit)
 
-    See here for more info: 
+    See here for more info: https://github.com/cmbi/VEP_custom_annotations
     """.stripIndent()
 }
 
@@ -59,21 +72,23 @@ if ((params.talon_gtf && !params.talon_idprefix)|(!params.talon_gtf && params.ta
 
 if (!params.reference_gtf && params.sample_gtf) exit 1, "A reference gtf must be provided to determine novelty"
 
-if (params.talon_gtf)
-   ch_talon_gtf=Channel.value(params.talon_gtf)
+if (params.talon_gtf) {
+   ch_talon_gtf=file(params.talon_gtf)
    ch_talon_idprefix=Channel.value(params.talon_idprefix)
+}
 
-if (params.sample_gtf)
-   ch_sample_gtf=Channel.value(params.sample_gtf)
-   ch_reference_gtf=Channel.value(params.reference_gtf)
+if (params.sample_gtf) {
+   ch_sample_gtf=file(params.sample_gtf)
+   ch_reference_gtf=file(params.reference_gtf)
+}
 
 if (!params.hexamer) exit 1, "Cannot find headmer file for parameter --hexamer: ${params.hexamer}"
-ch_hexamer = Channel.value(params.hexamer)
+ch_hexamer = file(params.hexamer)
 
 if (!params.logit_model) exit 1, "Cannot find any logit model file for parameter --logit_model: ${params.logit_model}"
 
-// if (!params.vcf) exit 1, "Cannot find any vcf file for parameter --vcf: ${params.vcf}"
-// ch_vcf = Channel.value(params.vcf)
+if (!params.vcf) exit 1, "Cannot find any vcf file for parameter --vcf: ${params.vcf}"
+ch_vcf = file(params.vcf)
 
 //import all the stuff
 include { gunzip_genome_fasta; gunzip_logit_model } from './nf_modules/decompression.nf'
@@ -82,6 +97,7 @@ include { fetch_novel; uppercase } from './nf_modules/process_talon.nf'
 include { convert_to_bed; cpat } from './nf_modules/cpat.nf'
 include { cpat_to_bed; bed_to_gff; merge_cds_with_rest; create_final_gff } from './nf_modules/cpat_to_gtf.nf'
 include { gtf_for_vep } from './nf_modules/prepare_for_vep.nf'
+include { predict_protein_function } from '../VEP_2_protein_function/main.nf'
 
 workflow full_gtf_input {
    take: 
@@ -100,7 +116,7 @@ workflow talon_gtf_input {
     talon_gtf
     prefix
    main:
-    fetch_novel(talon_gtf,prefix)
+    fetch_novel(file(talon_gtf), prefix)
     uppercase(fetch_novel.out)
    emit:
     uppercase.out
@@ -112,23 +128,19 @@ workflow {
       talon_gtf_input(ch_talon_gtf,ch_talon_idprefix)
       input_ch=ch_talon_gtf
       ch_novel_gtf=talon_gtf_input.out
-   }
-   else {
+   } else {
       full_gtf_input(ch_sample_gtf,ch_reference_gtf)
       input_ch=ch_sample_gtf
       ch_novel_gtf=full_gtf_input.out
    }
    // do ORF prediction
-   if (params.genome_fasta.endsWith('.gz')) 
-      ch_genome_fasta = Channel.value(gunzip_genome_fasta(params.genome_fasta))
-   else
-      ch_genome_fasta = Channel.value(params.genome_fasta)
    if (params.logit_model.endsWith('.gz')) 
-      ch_logit_model = Channel.value(gunzip_logit_model(params.logit_model))
+      ch_logit_model = gunzip_logit_model(file(params.logit_model))
    else
-      ch_logit_model = Channel.value(params.logit_model)
+      ch_logit_model = file(params.logit_model)
+
    convert_to_bed(ch_novel_gtf)
-   cpat(ch_hexamer, ch_logit_model, convert_to_bed.out, ch_genome_fasta)
+   cpat(ch_hexamer, ch_logit_model, convert_to_bed.out, file(params.genome_fasta))
    // make cds gff out of output
    cpat_to_bed(convert_to_bed.out,cpat.out[0])
    bed_to_gff(cpat_to_bed.out)
@@ -136,11 +148,9 @@ workflow {
    merge_cds_with_rest(bed_to_gff.out, input_ch)
    create_final_gff(merge_cds_with_rest.out)
    // format the GTF for VEP
-   gtf_for_vep(create_final_gff.out)
+   gtf = gtf_for_vep(create_final_gff.out)
+
    // run VEP for single aa subs
-   // if (params.vcf.endsWith('.gz')) 
-   //    gunzip_vcf(params.vcf)
-   // else
-   //    params.vcf
-   // ...
+   predict_protein_function( gtf.out, file(params.genome_fasta),
+                             file(params.vep_config))
 }

@@ -38,15 +38,16 @@ process pph2 {
     path subs
 
   output:
-    path '*.txt'
-    path '*.err'
+    path '*.txt', emit: results
+    path '*.err', emit: error
 
   publishDir "${params.outdir}/polyphen-2"
 
   """
   mkdir -p tmp/lock
+  output=${subs.baseName}.txt
   run_pph.pl -A -d tmp -s $protein $subs \
-             1> ${subs.baseName}.txt 2> ${subs.baseName}.err
+             1> \$output 2> ${subs.baseName}.err
   """
 }
 
@@ -61,17 +62,27 @@ process weka {
       2) Error '*.err'
   */
 
+  tag "${in.baseName}"
   container "nunoagostinho/polyphen-2:2.2.3"
   errorStrategy 'ignore'
 
   input:
-    path model
+    val model
     path in
 
   output:
-    path '${model}.*'
+    path '*.txt', emit: results
+    path '*.out', emit: processed
+    path '*.err', emit: error
 
-  """
-  run_weka.pl -l $model $in 1> ${model}.txt 2> ${model}.err
-  """
+  shell:
+  '''
+  res=!{in.baseName}_!{model}.txt
+  run_weka.pl -l /opt/pph2/models/!{model} !{in} \
+              1> $res 2> !{in.baseName}_!{model}.err
+
+  # clean results and append variant coordinates and transcript id
+  var=$( echo !{in.baseName}-PolyPhen2 | sed 's/-/,/g' )
+  grep -v "^#" ${res} | awk -v var="$var" -v OFS=',' -F'\t' '{$1=$1;print var,$12,$16}' | sed 's/,/\t/g' > !{in.baseName}.out
+  '''
 }
