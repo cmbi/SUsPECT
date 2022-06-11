@@ -1,9 +1,13 @@
 # VEP Custom
 Variant effect prediction based on custom long-read transcriptomes improves clinical variant annotation
 
+![premise](docs/premise.png)
+
 ## Description:
 
  Long-read transcriptomes often contain lots of novelty- especially in samples containing less well-studied tissues/conditions. This has implications for variant effect predictions. Variant effects may change with new or updated transcript annotations. This Nextflow pipeline runs VEP using your transcript file and appends missense effect predictions. The output may help expose potentially disease-causing variants that were previously overlooked.
+
+![vepcustom schematic](docs/pipeline.png)
 
 ## Installation:
 
