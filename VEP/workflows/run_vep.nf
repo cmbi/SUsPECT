@@ -81,7 +81,7 @@ workflow run_vep {
   take: vep_config
   main:
     chr_str = params.chros.toString()
-    chr = Channel.of(chr_str.split(',')).view()
+    chr = Channel.of(chr_str.split(','))
     splitVCF(chr, file( params.vcf ), file( vcf_index ))
     chrosVEP(splitVCF.out, vep_config)
     mergeVCF(chrosVEP.out.vcfFile.collect(), chrosVEP.out.indexFile.collect())

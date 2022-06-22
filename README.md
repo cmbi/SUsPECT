@@ -41,6 +41,9 @@ We are currently adapting the pipeline to accept TAMA/SQANTI3 output. Stay tuned
 
 ### Run the Nextflow pipeline: ORF prediction, VEP annotation and PolyPhen scores
 
+VEP parameters should be configured using `VEP/nf_config/vep.ini.template`. A
+custom file can be handled to the pipeline, e.g. `--vep_config custom/vep.ini`.
+
 To start running the Nextflow pipeline, run the following code with your input:
 
 ```
@@ -54,7 +57,9 @@ nextflow run_all.nf \
          --talon_idprefix talon \
          --genome_fasta hg38.fa.gz \
          --vcf patient.vcf.gz \
-         --vep_dir_cache vep_cache
+         --vep_dir_cache vep_cache \
+         --vep_config input/vep.ini \
+         --polyphen2_data /path/to/pph2/data
 ```
 
 The pipeline automatically downloads the required Singularity containers.
