@@ -22,6 +22,32 @@ process cpat_to_bed {
   """
 }
 
+process combine_bed {
+  publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
+  cpus 1
+  container "quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0"
+
+  input:
+      path sample_cds_bed
+      path transcript_bed
+  output:
+      path "transcripts_and_orfs.bed"
+      
+
+  script:
+      """
+      #!/usr/bin/env python3
+
+      import pandas as pd
+
+      transcripts=pd.read_table(${transcript_bed},names = ['chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'thickStart', 'thickEnd', 'itemRgb', 'blockCount', 'blockSizes', 'blockStarts'])
+      orfs=pd.read_table(${sample_cds_bed}, header=0, names = ['chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'thickStart', 'thickEnd', 'itemRgb', 'blockCount', 'blockSizes', 'blockStarts']).dropna(subset=['name'])
+      orfs['transcript']=orfs['name'].str.split('_',1).apply(lambda x: x[0])
+      combined=transcripts.merge(orfs[['transcript','name','thickStart','thickEnd']],left_on='name',right_on='transcript',suffixes=('','_orf'))
+      combined[['chrom', 'chromStart', 'chromEnd', 'name_orf', 'score', 'strand', 'thickStart_orf', 'thickEnd_orf', 'itemRgb', 'blockCount', 'blockSizes', 'blockStarts']].to_csv("transcripts_and_orfs.bed",sep='\t',header=False,index=False)
+      """
+}
+
 process bed_to_gff {
   publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
   cpus 1
