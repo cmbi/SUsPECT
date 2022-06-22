@@ -33,8 +33,8 @@ include { getAminoacidSubstitutions } from '../nf_modules/create_substitutions.n
 // print usage
 if (params.help) {
   log.info """
-  Pipeline to predict protein function using SIFT and PolyPhen-2
-  --------------------------------------------------------------
+  Predict protein function using SIFT and PolyPhen-2
+  --------------------------------------------------
 
   Usage:
     nextflow -C nf_config/nextflow.config run \
@@ -61,11 +61,12 @@ if (params.help) {
 }
 
 log.info """
-  Starting workflow...
-    GTF     : ${params.gtf}
-    FASTA   : ${params.fasta}
-    program : ${params.program}
-"""
+  Predict protein function using SIFT and PolyPhen-2
+  --------------------------------------------------
+  GTF     : ${params.gtf}
+  FASTA   : ${params.fasta}
+  program : ${params.program}
+  """
 
 workflow run_protein_prediction {
   // Translate transcripts from GTF and FASTA

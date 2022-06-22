@@ -12,15 +12,22 @@ params.model = "HumDiv.UniRef100.NBd.f11.model"
 
 // print usage
 if (params.help) {
-  log.info ''
-  log.info 'Pipeline to run VEP and SIFT/PolyPhen2 based on a VCF file'
-  log.info '----------------------------------------------------------'
-  log.info ''
-  log.info 'Usage: '
-  log.info '  nextflow run run_all.nf --fasta $fasta --gtf $gtf --vcf $vcf --chros 21,22 -profile lsf -resume'
-  log.info ''
-  log.info 'Options:'
-  log.info '  --vcf VCF      VCF containing missense variants for protein function prediction'
+  log.info """
+  Pipeline to run VEP and SIFT/PolyPhen2 based on a VCF file
+  ----------------------------------------------------------
+
+  Usage: 
+    nextflow run run_all.nf --fasta $fasta --gtf $gtf --vcf $vcf -profile lsf -resume
+
+  Mandatory arguments:
+    --vcf VCF     VCF containing missense variants for protein function prediction
+    --gtf
+    --fasta
+
+  Optional arguments:
+    --vep_config  Custom VEP configuration INI file
+    --outdir
+  """
   exit 1
 }
 
@@ -30,6 +37,15 @@ include { getTranslation } from '../protein_function/nf_modules/run_agat.nf'
 include { pph2; weka } from '../protein_function/nf_modules/run_polyphen2.nf'
 include { create_subs } from './nf_modules/create_subs.nf'
 include { linearise_fasta; get_fasta } from './nf_modules/fasta.nf'
+
+log.info """\
+SIFT/PPH2 prediction       v 0.1
+================================
+fasta    : $params.fasta
+gtf      : $params.gtf
+vcf      : $params.vcf
+outdir   : $params.outdir
+"""
 
 workflow predict_protein_function {
   take:

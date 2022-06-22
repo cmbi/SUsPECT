@@ -70,7 +70,7 @@ process merge_cds_with_rest {
   publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
   cpus 1
   container 'quay.io/biocontainers/gtfparse:1.2.1--pyh864c0ab_0'
-  memory '4 GB'
+  memory '16 GB'
 
   input:
       path novel_cds_gff
