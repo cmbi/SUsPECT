@@ -51,8 +51,8 @@ process filter_common_variants {
     path 'vep_filtered.vcf'
 
   """
-  grep "^#" > vep_orf.vcf 
-  grep -v "^#" | grep "_ORF_" >> vep_orf.vcf
+  zgrep "^#" $vcf > vep_orf.vcf 
+  zgrep -v "^#" $vcf | grep "_ORF_" >> vep_orf.vcf
   filter_vep -i vep_orf.vcf -o vep_filtered.vcf --filter "AF < 0.01 or not AF"
   """
 }
