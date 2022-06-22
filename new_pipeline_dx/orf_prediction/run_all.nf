@@ -150,9 +150,10 @@ workflow {
    merge_cds_with_rest(bed_to_gff.out, input_ch)
    create_final_gff(merge_cds_with_rest.out)
    // format the GTF for VEP
-   gtf = gtf_for_vep(create_final_gff.out)
+   gtf_for_vep(create_final_gff.out)
 
    // run VEP for single aa subs
-   predict_protein_function( gtf.out, file(params.genome_fasta),
+   predict_protein_function( gtf_for_vep.out,
+                             file(params.genome_fasta),
                              file(params.vep_config))
 }
