@@ -29,7 +29,9 @@ def helpMessage() {
          --talon_idprefix novel \
          --genome_fasta input/hg38.fa.gz \
          --vcf input/homo_sapiens_GRCh38.vcf.gz \
-         --vep_dir_cache input/vep_cache
+         --vep_dir_cache input/vep_cache \
+         --vep_config input/vep.ini \
+         --polyphen2_data /path/to/pph2/data
 
     Other:
 
