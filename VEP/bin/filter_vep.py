@@ -21,24 +21,36 @@ def get_transcript_ids(gff_file):
     gff=pd.read_table(gff_file,names=['seqname', 'source', 'feature', 'start','end', 'score', 'strand','frame','extra'])
     gff=gff[gff.feature=='mRNA'][['extra']]
     gff=gff[gff.extra.str.contains('_ORF_')] # make sure CPAT orfs
-    gff=gff.extra.str.split(';Parent').apply(lambda x: x[0])
-    gff=gff.str.strip('ID=')
-    return(gff.unique())
+    gff['Transcripts']=gff.extra.str.split(';Parent').apply(lambda x: x[0])
+    gff['Transcripts']=gff['Transcripts'].str.strip('ID=')
+    return(gff[['Transcripts']])
 
-def read_vcf_vep(vcfparserobj):
+def get_target_variants(path,transcripts):
+    '''return variants of interest given novel transcripts'''
+    with open(path, 'r') as f:
+        lines = [l for l in f if not l.startswith('##')]
+    df=pd.read_csv(io.StringIO(''.join(lines)),dtype={'#CHROM': str, 'POS': str, 'ID': str, 'REF': str, 'ALT': str,'QUAL': str, 'FILTER': str, 'INFO': str},sep='\t').rename(columns={'#CHROM': 'CHROM'})
+    df['Transcripts']=df.INFO.str.findall('Transcript\|(\w+)\|')
+    df['variant_id']=df['CHROM']+'_'+df['POS']+'_'+df['REF']+'_'+df['ALT']
+    df=df[['variant_id','Transcripts']].explode('Transcripts').merge(transcripts).drop_duplicates('variant_id')
+    return(set(df.variant_id.unique()))
+
+def read_vcf_vep(vcfparserobj,target_variants):
     '''to parse VCF formatted VEP output'''
     variant_info=pd.DataFrame()
     for variant in vcfparserobj:
-        l=[*variant['vep_info'].values()]
-        l=[item for sublist in l for item in sublist]
-        subdf=pd.DataFrame(l)
-        subdf['Chrom']=variant['CHROM']
-        subdf['Pos']=variant['POS']
-        subdf['Ref']=variant['REF']
-        subdf['Alt']=variant['ALT']
-        variant_info=pd.concat([variant_info,subdf])
+        if variant['variant_id'] in target_variants:
+            #if variant['MAX_AF']=='' or 'e' in variant['MAX_AF'] or float(variant['MAX_AF'])<0.01:
+            l=[*variant['vep_info'].values()]
+            l=[item for sublist in l for item in sublist]
+            subdf=pd.DataFrame(l)
+            subdf['Chrom']=variant['CHROM']
+            subdf['Pos']=variant['POS']
+            subdf['Ref']=variant['REF']
+            subdf['Alt']=variant['ALT']
+            subdf['Uploaded_variation']=variant['variant_id']
+            variant_info=pd.concat([variant_info,subdf])
     variant_info['Impact_level']=variant_info['IMPACT'].apply(classify_impact)
-    variant_info['Uploaded_variation']=variant_info['Chrom']+'_'+variant_info['Pos']+'_'+variant_info['Ref']+'/'+variant_info['Allele'] #check if should be allele or alt
     variant_info['MAX_AF']=variant_info['MAX_AF'].str.replace('','0') # novel variants given maxaf of 0
     variant_info['MAX_AF']=variant_info['MAX_AF'].apply(lambda x: 0 if 'e' in x else x) # this python package has a bug! cannot parse AF with exp.
     return(variant_info)
@@ -91,9 +103,10 @@ def main():
     args = aparser.parse_args()
     # read in data
     tids=get_transcript_ids(args.input_gff_file)
+    good_vars=get_target_variants(args.input_vep_file,tids)
     parser= VCFParser(infile=args.input_vep_file, split_variants=True, check_info=True)
     parse_out=parser
-    vep=read_vcf_vep(parser)
+    vep=read_vcf_vep(parser,good_vars)
     # remove variants that are only in reference sequences
     vep['nov']=vep.Feature.isin(tids) # True = novel seq
     variants_in_novel=vep[vep.nov]['Uploaded_variation'].unique() # get variants that fall into at least 1 novel transcript
