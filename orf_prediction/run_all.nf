@@ -20,20 +20,20 @@ def helpMessage() {
     Usage:
     The typical command for running the pipeline is as follows:
 
-      nextflow run_all.nf -resume \
-         --name test \
-         --outdir testing/ \
-         --hexamer input/Human_Hexamer.tsv \
-         --logit_model input/Human_logitModel.RData \
-         --talon_gtf input/filtered_talon_observedOnly.gtf \
-         --talon_idprefix novel \
-         --genome_fasta input/hg38.fa.gz \
-         --vcf input/homo_sapiens_GRCh38.vcf.gz \
-         --vep_dir_cache input/vep_cache \
+     nextflow run_all.nf \
+         --name run_name \
+         --outdir outDir \
+         --hexamer Human_Hexamer.tsv \
+         --logit_model Human_logitModel.RData \
+         --talon_gtf filtered_talon_observedOnly.gtf \
+         --talon_idprefix talon \
+         --genome_fasta hg38.fa.gz \
+         --vcf patient.vcf.gz \
+         --vep_dir_cache vep_cache \
          --vep_config input/vep.ini \
          --polyphen2_data /path/to/pph2/data
 
-    Other:
+    Other parameters:
 
       --max_cpus                    Maximum number of CPUs (int)
       --max_memory                  Maximum memory (memory unit)
