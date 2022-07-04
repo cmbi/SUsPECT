@@ -52,10 +52,12 @@ workflow predict_protein_function {
     gtf
     fasta
     vep_config
+    protein_fasta
   main:
     // Get translated FASTA
-    getTranslation( gtf, fasta )
-    linearise_fasta( getTranslation.out.collect() )
+    // getTranslation( gtf, fasta )
+    // linearise_fasta( getTranslation.out.collect() )
+    linearise_fasta( protein_fasta )
 
     // Filter out common variants
     vep_config_complete = append_fasta_gtf_to_config(vep_config, fasta, gtf)
