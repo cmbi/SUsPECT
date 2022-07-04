@@ -1,16 +1,16 @@
 process gtf_for_vep{
     publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
     cpus 1
-    container 'quay.io/biocontainers/ensembl-vep:106.1--pl5321h4a94de4_0'
+    container "ensemblorg/ensembl-vep:latest"
 
     input:
-        path complete_gff
+        path complete_gtf
     output:
-        path "novel_complete.gff.gz"
+        path "novel_complete.gtf.gz"
 
     script:
         """
-        grep -v "#" $complete_gff | sort -k1,1 -k4,4n -k5,5n -t\$'\t' | bgzip -c > novel_complete.gff.gz
-        tabix -p gff novel_complete.gff.gz
+        sed 's/; \$/;/g' $complete_gtf | grep -v "#" | sort -k1,1 -k4,4n -k5,5n -t\$'\t' | bgzip -c > novel_complete.gtf.gz
+        tabix -p gff novel_complete.gtf.gz
         """
 }
