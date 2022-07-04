@@ -1,11 +1,8 @@
 #!/usr/bin/env nextflow
 /*
- * 
- *   This script was adapted from the "long read proteogenomics" pipeline written by Sheynkman Lab.
- *
- *
  * @authors
- * Renee Salz
+ * Renee Salz 
+ *  
  */
 
 nextflow.enable.dsl=2
@@ -63,20 +60,16 @@ log.info "vcf                                   : ${params.vcf}"
 log.info "outdir                                : ${params.outdir}"
 log.info "sample_gtf                            : ${params.sample_gtf}"
 log.info "talon_gtf                             : ${params.talon_gtf}"
-log.info "talon_idprefix                        : ${params.talon_idprefix}"
 log.info ""
 
 
 if (!params.sample_gtf && !params.talon_gtf) exit 1, "Must submit sample gtf"
 
 
-if ((params.talon_gtf && !params.talon_idprefix)|(!params.talon_gtf && params.talon_idprefix)) exit 1, "When submitting a talon gtf, novel id prefix must also be provided (and vice versa)"
-
 if (!params.reference_gtf && params.sample_gtf) exit 1, "A reference gtf must be provided to determine novelty"
 
 if (params.talon_gtf) {
    ch_talon_gtf=file(params.talon_gtf)
-   ch_talon_idprefix=Channel.value(params.talon_idprefix)
 }
 
 if (params.sample_gtf) {
@@ -95,9 +88,9 @@ ch_vcf = file(params.vcf)
 //import all the stuff
 include { gunzip_genome_fasta; gunzip_logit_model } from './nf_modules/decompression.nf'
 include { identify_novel; filter_novel; clean_gxf } from './nf_modules/find_novel_transcripts.nf'
-include { fetch_novel; uppercase } from './nf_modules/process_talon.nf'
+include { fetch_novel } from './nf_modules/process_talon.nf'
 include { convert_to_bed; cpat } from './nf_modules/cpat.nf'
-include { cpat_to_bed; bed_to_gff; merge_cds_with_rest; create_final_gff } from './nf_modules/cpat_to_gtf.nf'
+include { cpat_to_bed; combine_bed; bed_to_genepred; genepred_to_gtf; add_genes } from './nf_modules/cpat_to_gtf.nf'
 include { gtf_for_vep } from './nf_modules/prepare_for_vep.nf'
 include { predict_protein_function } from '../VEP_2_protein_function/main.nf'
 
@@ -116,23 +109,19 @@ workflow full_gtf_input {
 workflow talon_gtf_input {
    take:
     talon_gtf
-    prefix
    main:
-    fetch_novel(file(talon_gtf), prefix)
-    uppercase(fetch_novel.out)
+    fetch_novel(file(talon_gtf))
    emit:
-    uppercase.out
+    fetch_novel.out
 }
 
 
 workflow {
    if (params.talon_gtf) {
-      talon_gtf_input(ch_talon_gtf,ch_talon_idprefix)
-      input_ch=ch_talon_gtf
+      talon_gtf_input(ch_talon_gtf)
       ch_novel_gtf=talon_gtf_input.out
    } else {
       full_gtf_input(ch_sample_gtf,ch_reference_gtf)
-      input_ch=ch_sample_gtf
       ch_novel_gtf=full_gtf_input.out
    }
    // do ORF prediction
@@ -143,17 +132,19 @@ workflow {
 
    convert_to_bed(ch_novel_gtf)
    cpat(ch_hexamer, ch_logit_model, convert_to_bed.out, file(params.genome_fasta))
-   // make cds gff out of output
+   // make cds bed out of output
    cpat_to_bed(convert_to_bed.out,cpat.out[0])
-   bed_to_gff(cpat_to_bed.out)
-   // combine input gtf with predicted CDS
-   merge_cds_with_rest(bed_to_gff.out, input_ch)
-   create_final_gff(merge_cds_with_rest.out)
+   // create whole bed of transcriptome with cds
+   combine_bed(convert_to_bed.out,cpat_to_bed.out)
+   // convert to gtf for use with vep
+   bed_to_genepred(combine_bed.out)
+   genepred_to_gtf(bed_to_genepred.out)
+   add_genes(genepred_to_gtf.out)
    // format the GTF for VEP
-   gtf_for_vep(create_final_gff.out)
-
+   gtf_for_vep(add_genes.out)
    // run VEP for single aa subs
    predict_protein_function( gtf_for_vep.out,
-                             file(params.genome_fasta),
-                             file(params.vep_config))
+                            file(params.genome_fasta),
+                            file(params.vep_config),
+                            cpat.out[2])
 }
