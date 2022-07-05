@@ -52,7 +52,7 @@ process filter_common_variants {
 
   """
   zgrep "^#" $vcf > vep_orf.vcf 
-  zgrep -v "^#" $vcf | grep "_ORF_" >> vep_orf.vcf
+  zgrep -v "^#" $vcf | grep -e "_ORF_" -e "missense" >> vep_orf.vcf
   filter_vep -i vep_orf.vcf -o vep_filtered.vcf --filter "AF < 0.01 or not AF"
   """
 }
