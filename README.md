@@ -35,14 +35,13 @@ If you have multiple patients over multiple VCF files, please combine them into 
 
 ### Perform TALON analysis
 
-The long-read transcriptome should preferably be processed with [TALON](https://github.com/mortazavilab/TALON) before running this pipeline. The idprefix argument given in ```talon_initialize_database``` and the gtf file output from the ```talon_create_GTF``` step are both used as input for this pipeline.
+The long-read transcriptome should preferably be processed with [TALON](https://github.com/mortazavilab/TALON) before running this pipeline. The gtf file output from the ```talon_create_GTF``` step is used as input for this pipeline.
 
-We are currently adapting the pipeline to accept TAMA/SQANTI3 output. Stay tuned.
+Is your long-read transcriptome analyzed with a different software that uses a different output format, and would you like to see this pipeline take it as input? Let us know.
 
 ### Run the Nextflow pipeline: ORF prediction, VEP annotation and PolyPhen scores
 
-VEP parameters should be configured using `VEP/nf_config/vep.ini.template`. A
-custom file can be handled to the pipeline, e.g. `--vep_config custom/vep.ini`.
+VEP parameters should be configured using `VEP/nf_config/vep.ini.template`. If you have other parameters to pass to VEP, such as a particular VEP cache version, a custom file with these parameters can be passed to the pipeline with the vep_config argument. Example: `--vep_config custom/vep.ini`.
 
 To start running the Nextflow pipeline, run the following code with your input:
 
@@ -54,7 +53,6 @@ nextflow run_all.nf \
          --hexamer Human_Hexamer.tsv \
          --logit_model Human_logitModel.RData \
          --talon_gtf filtered_talon_observedOnly.gtf \
-         --talon_idprefix talon \
          --genome_fasta hg38.fa.gz \
          --vcf patient.vcf.gz \
          --vep_dir_cache vep_cache \
