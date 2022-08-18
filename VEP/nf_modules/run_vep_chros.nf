@@ -22,9 +22,7 @@ process chrosVEP {
       1) VEP output file for each chromosome-wise split VCF
       2) A tabix index for that VCF output file
   */
-  publishDir "${params.outdir}/vep-summary",
-    pattern: "${prefix}-*.vcf.gz_summary.html",
-    mode:'move'
+  storeDir "${params.outdir}/vep-summary"
   cpus params.cpus
   container "ensemblorg/ensembl-vep:latest"
 
@@ -46,7 +44,7 @@ process chrosVEP {
   }
   else {
     """
-    vep -i ${vcfFile} -o ${prefix}-${vcfFile} --vcf --compress_output bgzip --format vcf --config ${vep_config} --cache --dir_cache ${params.vep_dir_cache}
+    vep -i ${vcfFile} -o ${prefix}-${vcfFile} --max_af --polyphen p --offline --vcf --compress_output bgzip --format vcf --config ${vep_config} --cache --dir_cache ${params.vep_dir_cache}
     tabix -p vcf ${prefix}-${vcfFile}
     """	
   }
