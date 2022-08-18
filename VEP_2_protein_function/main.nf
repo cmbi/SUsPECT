@@ -32,7 +32,7 @@ if (params.help) {
 }
 
 include { run_vep; run_vep as run_vep_plugin } from '../VEP/workflows/run_vep.nf'
-include { append_fasta_gtf_to_config; prepare_vep_transcript_annotation; filter_common_variants } from '../VEP/nf_modules/utils.nf'
+include { append_fasta_gtf_to_config; prepare_vep_transcript_annotation; create_exclusion_variants; exclude_pathogenic; filter_common_variants } from '../VEP/nf_modules/utils.nf'
 include { getTranslation } from '../protein_function/nf_modules/run_agat.nf'
 include { pph2; weka } from '../protein_function/nf_modules/run_polyphen2.nf'
 include { create_subs } from './nf_modules/create_subs.nf'
@@ -62,21 +62,26 @@ workflow predict_protein_function {
     // Filter out common variants
     vep_config_complete = append_fasta_gtf_to_config(vep_config, fasta, gtf)
     run_vep( vep_config_complete )
-    filter_common_variants( run_vep.out.vcfFile )
+    create_exclusion_variants ( run_vep.out.vcfFile )
+    exclude_pathogenic ( run_vep.out.vcfFile, create_exclusion_variants.out )
+    filter_common_variants( exclude_pathogenic.out, run_vep.out.vcfFile )
+    // filter_common_variants( run_vep.out.vcfFile )
 
     // Get substitutions
     create_subs( filter_common_variants.out )
     subs = create_subs.out.flatten()
-    translated = get_fasta ( linearise_fasta.out, subs )
+    get_fasta ( linearise_fasta.out, subs )
 
     // For each transcript, predict protein function
-    pph2(translated.fasta, subs)
+    pph2(get_fasta.out)
     weka(params.model, pph2.out.results)
     res = weka.out.processed.collectFile(name: "weka_results.out")
 
     // Incorporate PolyPhen-2 scores into VEP
-    prepare_vep_transcript_annotation( res, vep_config_complete, file("VEP_plugins") )
+    prepare_vep_transcript_annotation( res, vep_config_complete, file("../VEP_2_protein_function/VEP_plugins") )
     run_vep_plugin( prepare_vep_transcript_annotation.out )
+
+    // create output files
 }
 
 workflow {
