@@ -7,6 +7,7 @@ process gtf_for_vep{
         path complete_gtf
     output:
         path "novel_complete.gtf.gz"
+        path "novel_complete.gtf.gz.tbi"
 
     script:
         """
