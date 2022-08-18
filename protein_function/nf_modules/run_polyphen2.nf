@@ -34,14 +34,13 @@ process pph2 {
   errorStrategy 'ignore'
 
   input:
-    path protein
-    path subs
+    tuple path(protein), path(subs)
 
   output:
-    path '*.txt', emit: results
-    path '*.err', emit: error
+    path "${subs.baseName}.txt", emit: results
+    path "${subs.baseName}.err", emit: error
 
-  publishDir "${params.outdir}/polyphen-2"
+  storeDir "${params.outdir}/polyphen-2"
 
   """
   mkdir -p tmp/lock
@@ -61,7 +60,7 @@ process weka {
       1) Output '*.txt'
       2) Error '*.err'
   */
-
+  storeDir "${params.outdir}/weka"
   tag "${in.baseName}"
   container "nunoagostinho/polyphen-2:2.2.3"
   errorStrategy 'ignore'
