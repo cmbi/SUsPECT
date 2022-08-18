@@ -66,7 +66,7 @@ The pipeline automatically downloads the required Singularity containers.
 
 - One annotated VCF file with variants that were within at least 1 novel transcript.
 - A tab delimited file (tsv) containing variants that were benign in the reference annotation (VEP cache) and pathogenic in the custom annotation that was submitted
-    - "pathogenic" refers to variants that are either predicted as "damaging" by PolyPhen or have a "high" impact according to VEP.
+    - "pathogenic" refers to variants with effects that are either predicted as "damaging" by PolyPhen and/or have a "high" impact effect according to VEP.
 
 ## Contact:
 
