@@ -18,7 +18,7 @@ process create_subs {
   bcftools +split-vep $vcf -d -A tab -s :missense \
            -f '%CHROM-%POS-%REF-%ALT %Feature %Protein_position %Amino_acids\n' | \
            sed 's|/|\\t|g' > protein.subs
-  awk '{print \$2 "\\t" \$3 "\\t" \$4 "\\t" \$5 > ( \$1 "-" \$2 ".subs" ) }' protein.subs
+  awk '{ file=\$1 "-" \$2 ".subs"; print \$2 "\\t" \$3 "\\t" \$4 "\\t" \$5 > file; close(file) }' protein.subs
   rm protein.subs
   """
 }
