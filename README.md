@@ -46,7 +46,7 @@ VEP parameters should be configured using `VEP/nf_config/vep.ini.template`. If y
 To start running the Nextflow pipeline, run the following code with your input:
 
 ```
-cd new_pipeline_dx/orf_prediction
+cd orf_prediction
 nextflow run_all.nf \
          --name run_name \
          --outdir outDir \
@@ -62,7 +62,11 @@ nextflow run_all.nf \
 
 The pipeline automatically downloads the required Singularity containers.
 
-A final VCF output will contain VEP annotation with PolyPhen-2 scores.
+## Output:
+
+- One annotated VCF file with variants that were within at least 1 novel transcript.
+- A tab delimited file (tsv) containing variants that were benign in the reference annotation (VEP cache) and pathogenic in the custom annotation that was submitted
+    - "pathogenic" refers to variants that are either predicted as "damaging" by PolyPhen or have a "high" impact according to VEP.
 
 ## Contact:
 
