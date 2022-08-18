@@ -57,3 +57,23 @@ process cpat {
   cpat.py -x $hexamer -d $logit_model -g $sample_bed -r $reference_fasta -o novel_seqs 
   """
 }
+
+process cpat_orf_to_protein {
+  cpus 1
+  container "biocontainers/emboss:v6.5.7_cv2"
+  
+  publishDir "${params.outdir}/${params.name}/cpat/", mode: 'copy'
+
+  input:
+  path orf_seqs
+
+  output:
+  path 'novel_seqs.prot_seqs.fa'
+
+  script:
+  """
+  transeq $orf_seqs novel_seqs.prot_seqs.fa -trim
+  sed -i 's/_[^_]*//3g' novel_seqs.prot_seqs.fa
+  """
+
+}
