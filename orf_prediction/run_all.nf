@@ -23,7 +23,6 @@ def helpMessage() {
          --hexamer Human_Hexamer.tsv \
          --logit_model Human_logitModel.RData \
          --talon_gtf filtered_talon_observedOnly.gtf \
-         --talon_idprefix talon \
          --genome_fasta hg38.fa.gz \
          --vcf patient.vcf.gz \
          --vep_dir_cache vep_cache \
@@ -51,7 +50,7 @@ log.info "====================================="
 // Header log info
 log.info "\nPARAMETERS SUMMARY"
 log.info "genome_fasta                          : ${params.genome_fasta}"
-log.info "reference_gtf                          : ${params.reference_gtf}"
+log.info "reference_gtf                         : ${params.reference_gtf}"
 log.info "hexamer                               : ${params.hexamer}"
 log.info "logit_model                           : ${params.logit_model}"
 // log.info "max_cpus                              : ${params.max_cpus}"
@@ -89,7 +88,7 @@ ch_vcf = file(params.vcf)
 include { gunzip_genome_fasta; gunzip_logit_model } from './nf_modules/decompression.nf'
 include { identify_novel; filter_novel; clean_gxf } from './nf_modules/find_novel_transcripts.nf'
 include { fetch_novel } from './nf_modules/process_talon.nf'
-include { convert_to_bed; cpat } from './nf_modules/cpat.nf'
+include { convert_to_bed; cpat; cpat_orf_to_protein } from './nf_modules/cpat.nf'
 include { cpat_to_bed; combine_bed; bed_to_genepred; genepred_to_gtf; add_genes } from './nf_modules/cpat_to_gtf.nf'
 include { gtf_for_vep } from './nf_modules/prepare_for_vep.nf'
 include { predict_protein_function } from '../VEP_2_protein_function/main.nf'
@@ -134,6 +133,7 @@ workflow {
    cpat(ch_hexamer, ch_logit_model, convert_to_bed.out, file(params.genome_fasta))
    // make cds bed out of output
    cpat_to_bed(convert_to_bed.out,cpat.out[0])
+   cpat_orf_to_protein(cpat.out[2])
    // create whole bed of transcriptome with cds
    combine_bed(convert_to_bed.out,cpat_to_bed.out)
    // convert to gtf for use with vep
@@ -143,8 +143,8 @@ workflow {
    // format the GTF for VEP
    gtf_for_vep(add_genes.out)
    // run VEP for single aa subs
-   predict_protein_function( gtf_for_vep.out,
+   predict_protein_function( gtf_for_vep.out[0],
                             file(params.genome_fasta),
                             file(params.vep_config),
-                            cpat.out[2])
+                            cpat_orf_to_protein.out)
 }
