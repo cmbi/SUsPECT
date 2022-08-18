@@ -34,7 +34,7 @@ process get_fasta {
     path subs
 
   output:
-    path '*.fa', emit: fasta
+    tuple path('*.fa'), path(subs)
 
   """
   query=\$(awk '{print \$1}' $subs | uniq)
