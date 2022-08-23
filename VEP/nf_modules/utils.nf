@@ -83,58 +83,17 @@ process filter_common_variants {
 
   output:
     path 'vep_filtered.vcf'
+    path 'originally_benign_af.vcf.gz'
+    path 'originally_benign_af.vcf.gz.tbi'
 
   """
   zgrep "^#" $old_vcf > originally_benign.vcf
   cat $vcf >> originally_benign.vcf
-  filter_vep -i originally_benign.vcf -o originally_benign_af.vcf --filter "MAX_AF < 0.01 or not MAX_AF" 
+  filter_vep -i originally_benign.vcf -o originally_benign_af_dup.vcf --filter "MAX_AF < 0.01 or not MAX_AF" 
+  bcftools norm -d all -o originally_benign_af.vcf originally_benign_af_dup.vcf
   filter_vep -i originally_benign_af.vcf -o vep_filtered.vcf --only_matched --filter "Feature matches _ORF_" --filter "Consequence is missense_variant"
-  """
-}
-
-process filter_high_severity {
-  container 'ensemblorg/ensembl-vep:latest'
-
-  input:
-    file annotated_vcf
-
-  output:
-    path 'benign_to_pathogenic.vcf'
-
-  """
-  filter_vep -i $annotated_vcf --only_matched --filter "Feature matches _ORF_"  | filter_vep -o benign_to_pathogenic.vcf --only_matched --filter "PPH2_score matches damaging or IMPACT is HIGH"
-  """
-}
-
-process map_individuals {
-  container 'rlsalz/biopj:0.1.1'
-
-  publishDir "${params.outdir}/${params.name}/cds/", mode: 'copy'
-
-  input:
-  path final_vcf
-  
-  output:
-  path "variants_to_patients.tsv"
-  
-  script:
-  """
-  python $workflow.projectDir/bin/vcf_to_ind.py $final_vcf
-  """
-}
-
-process add_annotations_to_indiv {
-  container 'griffithlab/vatools:5.0.1'
-
-  input:
-    file annotated_vcf
-    file mapped_indiv
-
-  output:
-    path 'candidates.tsv'
-
-  """
-  vep-annotation-reporter -t $mapped_indiv -o candidates.tsv $annotated_vcf Allele Consequence IMPACT SYMBOL CDS_position Protein_position Amino_acids PPH2_score
+  bgzip originally_benign_af.vcf
+  tabix -p vcf originally_benign_af.vcf.gz
   """
 }
 
