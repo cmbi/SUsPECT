@@ -60,7 +60,6 @@ process weka {
       1) Output '*.txt'
       2) Error '*.err'
   */
-  storeDir "${params.outdir}/weka"
   tag "${in.baseName}"
   container "nunoagostinho/polyphen-2:2.2.3"
   errorStrategy 'ignore'
