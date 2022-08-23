@@ -22,7 +22,7 @@ process chrosVEP {
       1) VEP output file for each chromosome-wise split VCF
       2) A tabix index for that VCF output file
   */
-  storeDir "${params.outdir}/vep-summary"
+  publishDir "${params.outdir}/vep-summary"
   cpus params.cpus
   container "ensemblorg/ensembl-vep:latest"
 
