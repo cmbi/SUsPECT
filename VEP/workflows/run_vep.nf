@@ -78,11 +78,14 @@ if( !vepFile.exists() ) {
 log.info 'Starting workflow.....'
 
 workflow run_vep {
-  take: vep_config
+  take:
+    vcf
+    vcf_index
+    vep_config
   main:
     chr_str = params.chros.toString()
     chr = Channel.of(chr_str.split(','))
-    splitVCF(chr, file( params.vcf ), file( vcf_index ))
+    splitVCF(chr, vcf, vcf_index)
     chrosVEP(splitVCF.out, vep_config)
     mergeVCF(chrosVEP.out.vcfFile.collect(), chrosVEP.out.indexFile.collect())
   emit:
@@ -91,5 +94,5 @@ workflow run_vep {
 }
 
 workflow {
-  run_vep( file( params.vep_config ) )
+  run_vep( file(params.vcf), file(vcf_index), file(params.vep_config) )
 }

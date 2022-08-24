@@ -82,9 +82,9 @@ process filter_common_variants {
     file old_vcf
 
   output:
-    path 'vep_filtered.vcf'
-    path 'originally_benign_af.vcf.gz'
-    path 'originally_benign_af.vcf.gz.tbi'
+    path 'vep_filtered.vcf', emit: vep_filtered_vcf
+    path 'originally_benign_af.vcf.gz', emit: originally_benign_af_vcf
+    path 'originally_benign_af.vcf.gz.tbi', emit: originally_benign_af_vcf_index
 
   """
   zgrep "^#" $old_vcf > originally_benign.vcf
