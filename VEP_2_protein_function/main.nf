@@ -62,14 +62,14 @@ workflow predict_protein_function {
 
     // Filter out common variants
     vep_config_complete = append_fasta_gtf_to_config(vep_config, fasta, gtf)
-    run_vep( vep_config_complete )
+    run_vep( file( params.vcf ), file( "${params.vcf}.tbi" ), vep_config_complete )
     create_exclusion_variants ( run_vep.out.vcfFile )
     exclude_pathogenic ( run_vep.out.vcfFile, create_exclusion_variants.out )
     filter_common_variants( exclude_pathogenic.out, run_vep.out.vcfFile )
     // filter_common_variants( run_vep.out.vcfFile )
 
     // Get substitutions
-    create_subs( filter_common_variants.out[0] )
+    create_subs( filter_common_variants.out.vep_filtered_vcf )
     subs = create_subs.out.flatten()
     get_fasta ( linearise_fasta.out, subs )
 
@@ -80,7 +80,9 @@ workflow predict_protein_function {
 
     // Incorporate PolyPhen-2 scores into VEP
     prepare_vep_transcript_annotation( res, vep_config_complete, file("../VEP_2_protein_function/VEP_plugins") )
-    run_vep_plugin( prepare_vep_transcript_annotation.out )
+    run_vep_plugin( filter_common_variants.out.originally_benign_af_vcf,
+                    filter_common_variants.out.originally_benign_af_vcf_index,
+                    prepare_vep_transcript_annotation.out )
 
     // create output files
     filter_high_severity( run_vep_plugin.out.vcfFile )
