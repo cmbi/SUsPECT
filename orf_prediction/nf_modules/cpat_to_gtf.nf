@@ -7,7 +7,7 @@ process cpat_to_bed {
   cpus 1
   container 'rlsalz/biopj:0.1.1'
 
-  publishDir "${params.outdir}/${params.name}/cds/", mode: 'copy'
+  storeDir "${params.outdir}/${params.name}/cds/"
 
   input:
   path transcript_bed
@@ -23,7 +23,7 @@ process cpat_to_bed {
 }
 
 process combine_bed {
-  publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
+  storeDir "${params.outdir}/${params.name}/final_gtf/"
   cpus 1
   container "quay.io/biocontainers/gtfparse:1.2.1--pyh864c0ab_0"
 
@@ -48,25 +48,8 @@ process combine_bed {
       """
 }
 
-// process bed_to_gff {
-//   publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
-//   cpus 1
-//   container "quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0"
-
-//   input:
-//       path sample_cds_bed
-//   output:
-//       path "novel_cds.gff3"
-      
-
-//   script:
-//       """
-//       agat_convert_bed2gff.pl --bed $sample_cds_bed --inflate_type CDS --out novel_cds.gff3 
-//       sed -i '1d' novel_cds.gff3
-//       """
-// }
 process bed_to_genepred {
-  publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
+  storeDir "${params.outdir}/${params.name}/final_gtf/"
   cpus 1
   container "quay.io/biocontainers/ucsc-bedtogenepred:377--ha8a8165_3"
 
@@ -83,7 +66,7 @@ process bed_to_genepred {
 }
 
 process genepred_to_gtf {
-  publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
+  storeDir "${params.outdir}/${params.name}/final_gtf/"
   cpus 1
   container "quay.io/biocontainers/ucsc-genepredtogtf:377--ha8a8165_5"
 
@@ -100,7 +83,7 @@ process genepred_to_gtf {
 }
 
 process add_genes {
-  publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
+  storeDir "${params.outdir}/${params.name}/final_gtf/"
   cpus 1
 
   input:
