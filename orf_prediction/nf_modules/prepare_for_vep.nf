@@ -1,5 +1,5 @@
 process gtf_for_vep{
-    publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
+    storeDir "${params.outdir}/${params.name}/final_gtf/"
     cpus 1
     container "ensemblorg/ensembl-vep:latest"
 
