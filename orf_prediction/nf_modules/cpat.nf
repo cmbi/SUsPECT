@@ -1,7 +1,7 @@
 process convert_to_bed {
   cpus 1
   container 'quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0'
-  publishDir "${params.outdir}/${params.name}/transcriptome_fasta/", mode: 'copy'
+  storeDir "${params.outdir}/${params.name}/transcriptome_fasta/"
   memory '4 GB'
 
   input:
@@ -38,7 +38,7 @@ process cpat {
   cpus 1
   container "quay.io/biocontainers/cpat:3.0.4--py38h17adfb0_1"
   
-  publishDir "${params.outdir}/${params.name}/cpat/", mode: 'copy'
+  storeDir "${params.outdir}/${params.name}/cpat/"
 
   input:
   path hexamer
@@ -50,7 +50,6 @@ process cpat {
   path "novel_seqs.ORF_prob.tsv"
   path "novel_seqs.ORF_prob.best.tsv"
   path "novel_seqs.ORF_seqs.fa"
-  path "*"
 
   script:
   """
@@ -62,7 +61,7 @@ process cpat_orf_to_protein {
   cpus 1
   container "biocontainers/emboss:v6.5.7_cv2"
   
-  publishDir "${params.outdir}/${params.name}/cpat/", mode: 'copy'
+  storeDir "${params.outdir}/${params.name}/cpat/"
 
   input:
   path orf_seqs
