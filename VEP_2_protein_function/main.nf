@@ -37,7 +37,7 @@ include { getTranslation } from '../protein_function/nf_modules/run_agat.nf'
 include { pph2; weka } from '../protein_function/nf_modules/run_polyphen2.nf'
 include { create_subs } from './nf_modules/create_subs.nf'
 include { linearise_fasta; get_fasta } from './nf_modules/fasta.nf'
-include { filter_high_severity; filter_ref_only, map_individuals, add_annotations_to_indiv, get_ref_annotations, combine_custom_ref_candidates} from './nf_modules/output_filtering.nf'
+include { filter_high_severity; dedup_output; map_individuals; add_annotations_to_indiv; get_ref_annotations; combine_custom_ref_candidates } from './nf_modules/output_filtering.nf'
 
 log.info """\
 SIFT/PPH2 prediction       v 0.1
@@ -86,10 +86,10 @@ workflow predict_protein_function {
 
     // create output files
     filter_high_severity( run_vep_plugin.out.vcfFile )
-    filter_ref_only( run_vep_plugin.out.vcfFile )
-    map_individuals(filter_high_severity.out)
-    add_annotations_to_indiv(filter_high_severity.out, map_individuals.out)
-    get_ref_annotations(filter_ref_only.out)
+    dedup_output( filter_high_severity.out )
+    map_individuals(dedup_output.out[0])
+    add_annotations_to_indiv(dedup_output.out[0], map_individuals.out)
+    get_ref_annotations(dedup_output.out[1])
     combine_custom_ref_candidates(add_annotations_to_indiv.out, get_ref_annotations.out)
 
 }
