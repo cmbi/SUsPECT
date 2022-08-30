@@ -45,6 +45,7 @@ process prepare_vep_transcript_annotation {
 
 process create_exclusion_variants {
   container 'ensemblorg/ensembl-vep:latest'
+  storeDir "${params.outdir}/${params.name}/filtering/"
 
   input:
     file vcf
@@ -61,6 +62,7 @@ process create_exclusion_variants {
 
 process exclude_pathogenic {
   container 'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0'
+  storeDir "${params.outdir}/${params.name}/filtering/"
 
   input:
     file vcf
@@ -76,6 +78,7 @@ process exclude_pathogenic {
 
 process filter_common_variants {
   container 'ensemblorg/ensembl-vep:latest'
+  storeDir "${params.outdir}/${params.name}/filtering/"
 
   input:
     file vcf
@@ -89,8 +92,7 @@ process filter_common_variants {
   """
   zgrep "^#" $old_vcf > originally_benign.vcf
   cat $vcf >> originally_benign.vcf
-  filter_vep -i originally_benign.vcf -o originally_benign_af_dup.vcf --filter "MAX_AF < 0.01 or not MAX_AF" 
-  bcftools norm -d all -o originally_benign_af.vcf originally_benign_af_dup.vcf
+  filter_vep -i originally_benign.vcf -o originally_benign_af.vcf --filter "MAX_AF < 0.01 or not MAX_AF" 
   filter_vep -i originally_benign_af.vcf -o vep_filtered.vcf --only_matched --filter "Feature matches _ORF_" --filter "Consequence is missense_variant"
   bgzip originally_benign_af.vcf
   tabix -p vcf originally_benign_af.vcf.gz
