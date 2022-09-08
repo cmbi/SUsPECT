@@ -33,7 +33,6 @@ if (params.help) {
 
 include { run_vep; run_vep as run_vep_plugin } from '../VEP/workflows/run_vep.nf'
 include { append_fasta_gtf_to_config; prepare_vep_transcript_annotation; create_exclusion_variants; exclude_pathogenic; filter_common_variants } from '../VEP/nf_modules/utils.nf'
-include { getTranslation } from '../protein_function/nf_modules/run_agat.nf'
 include { pph2; weka } from '../protein_function/nf_modules/run_polyphen2.nf'
 include { create_subs } from './nf_modules/create_subs.nf'
 include { linearise_fasta; get_fasta } from './nf_modules/fasta.nf'
@@ -56,8 +55,6 @@ workflow predict_protein_function {
     protein_fasta
   main:
     // Get translated FASTA
-    // getTranslation( gtf, fasta )
-    // linearise_fasta( getTranslation.out.collect() )
     linearise_fasta( protein_fasta )
 
     // Filter out common variants
@@ -65,7 +62,7 @@ workflow predict_protein_function {
     run_vep( file( params.vcf ), file( "${params.vcf}.tbi" ), vep_config_complete )
     create_exclusion_variants ( run_vep.out.vcfFile )
     exclude_pathogenic ( run_vep.out.vcfFile, create_exclusion_variants.out )
-    filter_common_variants( exclude_pathogenic.out, run_vep.out.vcfFile )
+    filter_common_variants( exclude_pathogenic.out )
     // filter_common_variants( run_vep.out.vcfFile )
 
     // Get substitutions
