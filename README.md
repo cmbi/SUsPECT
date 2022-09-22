@@ -22,7 +22,7 @@ Running the pipeline requires:
 The input for this pipeline is a patient (combined) VCF and a long-read transcriptome. 
 
 The files needed include:
-- TALON output (more details below)
+- transcript structures in GTF format. TALON or IsoQuant outputs are supported (more details below)
 - a genome FASTA file (bgzipped)
 - a GTF of long read transcripts (bgzipped)
 - a VCF file of patient(s)
