@@ -57,24 +57,28 @@ log.info "logit_model                           : ${params.logit_model}"
 log.info "name                                  : ${params.name}"
 log.info "vcf                                   : ${params.vcf}"
 log.info "outdir                                : ${params.outdir}"
-log.info "sample_gtf                            : ${params.sample_gtf}"
+log.info "isoquant_gtf                          : ${params.isoquant_gtf}"
 log.info "talon_gtf                             : ${params.talon_gtf}"
 log.info ""
 
 
-if (!params.sample_gtf && !params.talon_gtf) exit 1, "Must submit sample gtf"
+if (!params.isoquant_gtf && !params.talon_gtf) exit 1, "Must submit sample gtf"
 
 
-if (!params.reference_gtf && params.sample_gtf) exit 1, "A reference gtf must be provided to determine novelty"
+// if (!params.reference_gtf && params.sample_gtf) exit 1, "A reference gtf must be provided to determine novelty"
 
 if (params.talon_gtf) {
    ch_talon_gtf=file(params.talon_gtf)
 }
 
-if (params.sample_gtf) {
-   ch_sample_gtf=file(params.sample_gtf)
-   ch_reference_gtf=file(params.reference_gtf)
+if (params.isoquant_gtf) {
+   ch_isoquant_gtf=file(params.isoquant_gtf)
 }
+
+// if (params.sample_gtf) {
+//    ch_sample_gtf=file(params.sample_gtf)
+//    ch_reference_gtf=file(params.reference_gtf)
+// }
 
 if (!params.hexamer) exit 1, "Cannot find headmer file for parameter --hexamer: ${params.hexamer}"
 ch_hexamer = file(params.hexamer)
@@ -87,31 +91,28 @@ ch_vcf = file(params.vcf)
 //import all the stuff
 include { gunzip_genome_fasta; gunzip_logit_model } from './nf_modules/decompression.nf'
 include { identify_novel; filter_novel; clean_gxf } from './nf_modules/find_novel_transcripts.nf'
-include { fetch_novel } from './nf_modules/process_talon.nf'
+include { fetch_novel_talon; fetch_novel_isoquant } from './nf_modules/process_talon.nf'
 include { convert_to_bed; cpat; cpat_orf_to_protein } from './nf_modules/cpat.nf'
 include { cpat_to_bed; combine_bed; bed_to_genepred; genepred_to_gtf; add_genes } from './nf_modules/cpat_to_gtf.nf'
 include { gtf_for_vep } from './nf_modules/prepare_for_vep.nf'
 include { predict_protein_function } from '../VEP_2_protein_function/main.nf'
 
-workflow full_gtf_input {
+workflow isoquant_gtf_input {
    take: 
-    full_gtf
-    reference_gtf
+    isoquant_gtf
    main:
-    identify_novel(full_gtf,reference_gtf)
-    filter_novel(identify_novel.out[0])
-    clean_gxf(filter_novel.out)
+    fetch_novel_isoquant(file(isoquant_gtf))
    emit:
-    clean_gxf.out
+    fetch_novel_isoquant.out
 }
 
 workflow talon_gtf_input {
    take:
     talon_gtf
    main:
-    fetch_novel(file(talon_gtf))
+    fetch_novel_talon(file(talon_gtf))
    emit:
-    fetch_novel.out
+    fetch_novel_talon.out
 }
 
 
@@ -120,8 +121,8 @@ workflow {
       talon_gtf_input(ch_talon_gtf)
       ch_novel_gtf=talon_gtf_input.out
    } else {
-      full_gtf_input(ch_sample_gtf,ch_reference_gtf)
-      ch_novel_gtf=full_gtf_input.out
+      isoquant_gtf_input(ch_isoquant_gtf)
+      ch_novel_gtf=isoquant_gtf_input.out
    }
    // do ORF prediction
    if (params.logit_model.endsWith('.gz')) 
