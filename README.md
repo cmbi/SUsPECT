@@ -24,7 +24,6 @@ The input for this pipeline is a patient (combined) VCF and a long-read transcri
 The files needed include:
 - transcript structures in GTF format. TALON or IsoQuant outputs are supported (more details below)
 - a genome FASTA file (bgzipped)
-- a GTF of long read transcripts (bgzipped)
 - a VCF file of patient(s)
 - Human_logitModel.RData & Human_Hexamer.tsv from https://sourceforge.net/projects/rna-cpat/files/v1.2.2/prebuilt_model/
 
