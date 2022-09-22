@@ -33,11 +33,15 @@ If you have multiple patients over multiple VCF files, please combine them into 
 
 ## How to run:
 
-### Perform TALON analysis
+### Perform TALON or IsoQuant analysis
 
-The long-read transcriptome should preferably be processed with [TALON](https://github.com/mortazavilab/TALON) before running this pipeline. The gtf file output from the ```talon_create_GTF``` step is used as input for this pipeline.
+The long-read transcriptome should either be processed with [TALON](https://github.com/mortazavilab/TALON) or [IsoQuant](https://github.com/ablab/IsoQuant) before running this pipeline. 
 
-Is your long-read transcriptome analyzed with a different software that uses a different output format, and would you like to see this pipeline take it as input? Let us know.
+For TALON: The gtf file output from the ```talon_create_GTF``` step should be given to --talon_gtf input parameter.
+
+For IsoQuant: The gtf file ending with ```.transcript_models.gtf``` should be given to --isoquant_gtf input parameter.
+
+Is your long-read transcriptome analyzed with a different software than these two options, and would you like to see this pipeline take its output as input? Let us know.
 
 ### Run the Nextflow pipeline: ORF prediction, VEP annotation and PolyPhen scores
 
@@ -65,8 +69,8 @@ The pipeline automatically downloads the required Singularity containers.
 ## Output:
 
 - One annotated VCF file with variants that were within at least 1 novel transcript.
-- A tab delimited file (tsv) containing variants that were benign in the reference annotation (VEP cache) and pathogenic in the custom annotation that was submitted
-    - "pathogenic" refers to variants with effects that are either predicted as "damaging" by PolyPhen and/or have a "high" impact effect according to VEP.
+- A tab delimited file (tsv) containing variants that were benign in the reference annotation (VEP cache) and potentially pathogenic in the custom annotation that was submitted
+    - "pathogenic" refers to variants with effects that are either predicted as "moderate" or "high" impact effect according to VEP.
 
 ## Contact:
 
