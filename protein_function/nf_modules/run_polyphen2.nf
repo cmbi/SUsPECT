@@ -27,26 +27,29 @@ process pph2 {
       2) Errors '*.err'
   */
 
-  tag "${subs.baseName}"
+  tag "${subs.chrom}-${subs.pos}-${subs.ref}-${subs.alt}-${subs.feature}"
   container "nunoagostinho/polyphen-2:2.2.3"
   containerOptions "--bind $dssp,$wwpdb,$precomputed,$nrdb,$pdb2fasta,$ucsc,$uniprot"
   memory '4 GB'
   errorStrategy 'ignore'
 
   input:
-    tuple path(protein), path(subs)
+    path fasta
+    val subs
 
   output:
-    path "${subs.baseName}.txt", emit: results
-    path "${subs.baseName}.err", emit: error
-
-  storeDir "${params.outdir}/polyphen-2"
+    path "*.txt", emit: results
 
   """
+  echo "${subs.feature}\t${subs.protein_pos}\t${subs.aa_ref}\t${subs.aa_alt}" > var.subs
+  grep -A1 ${subs.feature} ${fasta} > peptide.fa
+
   mkdir -p tmp/lock
-  output=${subs.baseName}.txt
-  run_pph.pl -A -d tmp -s $protein $subs \
-             1> \$output 2> ${subs.baseName}.err
+  out="${subs.chrom}-${subs.pos}-${subs.ref}-${subs.alt}-${subs.feature}.txt"
+  run_pph.pl -A -d tmp -s peptide.fa var.subs > \$out
+
+  # Remove output if only contains header
+  if [ "\$( wc -l <\$out )" -eq 1 ]; then rm \$out; fi
   """
 }
 

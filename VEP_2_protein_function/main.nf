@@ -67,11 +67,10 @@ workflow predict_protein_function {
 
     // Get substitutions
     create_subs( filter_common_variants.out.vep_filtered_vcf )
-    subs = create_subs.out.flatten()
-    get_fasta ( linearise_fasta.out, subs )
+    subs = create_subs.out.splitCsv(sep: "\t", header: true)
 
     // For each transcript, predict protein function
-    pph2(get_fasta.out)
+    pph2( linearise_fasta.out, subs )
     weka(params.model, pph2.out.results)
     res = weka.out.processed.collectFile(name: "weka_results.out")
 
