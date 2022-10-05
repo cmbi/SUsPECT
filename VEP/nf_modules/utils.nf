@@ -27,8 +27,7 @@ process prepare_vep_transcript_annotation {
     path dir_plugins
 
   output:
-    //path '*.ini'
-    path '*_plugin.ini'
+    path 'vep_config_plugin.ini'
 
   """
   new_config="vep_config_plugin.ini"

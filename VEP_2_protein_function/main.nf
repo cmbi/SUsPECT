@@ -79,7 +79,7 @@ workflow predict_protein_function {
     prepare_vep_transcript_annotation( res, vep_config_complete, file("../VEP_2_protein_function/VEP_plugins") )
     run_vep_plugin( filter_common_variants.out.originally_benign_af_vcf,
                     filter_common_variants.out.originally_benign_af_vcf_index,
-                    prepare_vep_transcript_annotation.out )
+                    prepare_vep_transcript_annotation.out.first() )
 
     // create output files
     filter_high_severity( run_vep_plugin.out.vcfFile )
@@ -93,5 +93,5 @@ workflow predict_protein_function {
 
 workflow {
   predict_protein_function( file(params.gtf), file(params.fasta),
-                            file(params.vep_config) )
+                            file(params.vep_config), file(params.translated) )
 }
