@@ -67,11 +67,10 @@ workflow predict_protein_function {
 
     // Get substitutions
     create_subs( filter_common_variants.out.vep_filtered_vcf )
-    subs = create_subs.out.flatten()
-    get_fasta ( linearise_fasta.out, subs )
+    subs = create_subs.out.splitCsv(sep: "\t", header: true)
 
     // For each transcript, predict protein function
-    pph2(get_fasta.out)
+    pph2( linearise_fasta.out, subs )
     weka(params.model, pph2.out.results)
     res = weka.out.processed.collectFile(name: "weka_results.out")
 
@@ -79,7 +78,7 @@ workflow predict_protein_function {
     prepare_vep_transcript_annotation( res, vep_config_complete, file("../VEP_2_protein_function/VEP_plugins") )
     run_vep_plugin( filter_common_variants.out.originally_benign_af_vcf,
                     filter_common_variants.out.originally_benign_af_vcf_index,
-                    prepare_vep_transcript_annotation.out )
+                    prepare_vep_transcript_annotation.out.first() )
 
     // create output files
     filter_high_severity( run_vep_plugin.out.vcfFile )
@@ -93,5 +92,5 @@ workflow predict_protein_function {
 
 workflow {
   predict_protein_function( file(params.gtf), file(params.fasta),
-                            file(params.vep_config) )
+                            file(params.vep_config), file(params.translated) )
 }

@@ -28,7 +28,6 @@ params.model = "HumDiv.UniRef100.NBd.f11.model"
 include { getTranslation }            from '../nf_modules/run_agat.nf'
 include { sift; alignProteins }       from '../nf_modules/run_sift.nf'
 include { pph2; weka }                from '../nf_modules/run_polyphen2.nf'
-include { getAminoacidSubstitutions } from '../nf_modules/create_substitutions.nf'
 
 // print usage
 if (params.help) {

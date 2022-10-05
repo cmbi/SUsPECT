@@ -13,8 +13,7 @@ process linearise_fasta {
 
   script:
   """
-  cat $fasta > combined.fa
-  sed -e 's/\\(^>.*\$\\)/#\\1#/' combined.fa | \
+  sed -e 's/\\(^>.*\$\\)/#\\1#/' $fasta | \
     tr -d "\\r" | \
     tr -d "\\n" | \
     sed -e 's/\$/#/' | \
