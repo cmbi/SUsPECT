@@ -1,4 +1,6 @@
 # SUsPECT: Solving Unsolved Patient Exomes using a Custom Transcriptome
+![logo](docs/LogoSUsPECT_whitebck.png)
+
 Variant effect prediction based on custom long-read transcriptomes improves clinical variant annotation
 
 ![premise](docs/premise.png)
