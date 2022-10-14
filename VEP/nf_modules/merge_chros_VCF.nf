@@ -23,8 +23,8 @@ process mergeVCF {
       2) A tabix index for that VCF
   */
 
-  publishDir "${params.outdir}", 
-    enabled: "${params.outdir}" as Boolean,
+  publishDir "${params.outdir}/${params.name}", 
+    enabled: "${params.outdir}/${params.name}" as Boolean,
     mode:'copy'
     
   cpus params.cpus
