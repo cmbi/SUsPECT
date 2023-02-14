@@ -26,6 +26,6 @@ process fetch_novel_isoquant {
 
   script:
       """
-      grep -e '\\sgene\\s' -e 'reference_transcript_id\s\"novel\"' $novel_gtf_raw | sed '/\\sgene\\s/{\$!N;/\\n.*\\sgene\\s/!P;D}' | sed 's/"transcript_/"transcript./g' > isoquant_novelonly.gtf
+      grep -e '\\sgene\\s' -e '\\.nic' -e '\\.nnic' $novel_gtf_raw | awk '! ( \$1 ~ /_/ )' | awk '! ( \$7=="." )' | sed '/\\sgene\\s/{\$!N;/\\n.*\\sgene\\s/!P;D}' > isoquant_novelonly.gtf
       """
 }
