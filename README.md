@@ -31,6 +31,12 @@ The files needed include:
 
 If you have multiple patients over multiple VCF files, please combine them into one VCF file with [vcftools](https://vcftools.github.io/perl_module.html#vcf-merge).
 
+If your VCF file has 'chr' in front of the chromosome numbers (e.g. chr1, chr 2, etc), they need to be converted to ENSEMBL format. This can be done by downloading the converter file [here](https://github.com/dpryan79/ChromosomeMappings/blob/master/GRCh38_gencode2ensembl.txt) and running the following on your VCF file:
+```
+bcftools annotate --rename-chrs GRCh38_gencode2ensembl.txt -o chr_renamed.vcf -O v original.vcf
+bgzip chr_renamed.vcf
+tabix -p vcf chr_renamed.vcf.gz
+```
 
 ## How to run:
 
