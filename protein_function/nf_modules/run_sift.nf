@@ -12,7 +12,7 @@ process alignProteins {
   */
 
   tag "$fasta"
-  container "nunoagostinho/sift:6.2.1"
+  label 'sift'
   memory '4 GB'
   errorStrategy 'ignore'
 
@@ -44,7 +44,7 @@ process sift {
   */
 
   tag "${aln}"
-  container "nunoagostinho/sift:6.2.1"
+  label 'sift'
   memory '4 GB'
   errorStrategy 'ignore'
   publishDir "${params.outdir}/sift"

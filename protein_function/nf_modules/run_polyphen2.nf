@@ -6,16 +6,6 @@
 
 params.polyphen2_data = "/hps/nobackup/flicek/ensembl/variation/nuno/sift-polyphen2-nextflow-4667/input/polyphen2"
 
-// PolyPhen-2 data directories to bind
-PPH="/opt/pph2" // PolyPhen-2 directory in Singularity container
-dssp="${params.polyphen2_data}/dssp:$PPH/dssp"
-wwpdb="${params.polyphen2_data}/wwpdb:$PPH/wwpdb"
-precomputed="${params.polyphen2_data}/precomputed:$PPH/precomputed"
-nrdb="${params.polyphen2_data}/nrdb:$PPH/nrdb"
-pdb2fasta="${params.polyphen2_data}/pdb2fasta:$PPH/pdb2fasta"
-ucsc="${params.polyphen2_data}/ucsc:$PPH/ucsc"
-uniprot="${params.polyphen2_data}/uniprot:$PPH/uniprot"
-
 process pph2 {
   /*
   Run PolyPhen-2 on a protein sequence with a substitions file
@@ -28,8 +18,8 @@ process pph2 {
   */
 
   tag "${subs.chrom}-${subs.pos}-${subs.ref}-${subs.alt}-${subs.feature}"
-  container "nunoagostinho/polyphen-2:2.2.3"
-  containerOptions "--bind $dssp,$wwpdb,$precomputed,$nrdb,$pdb2fasta,$ucsc,$uniprot"
+  label 'pph2'
+  containerOptions "--bind ${params.polyphen2_data}:/opt/pph2/data
   memory '4 GB'
   errorStrategy 'ignore'
 
@@ -64,7 +54,7 @@ process weka {
       2) Error '*.err'
   */
   tag "${in.baseName}"
-  container "nunoagostinho/polyphen-2:2.2.3"
+  label 'pph2'
   errorStrategy 'ignore'
 
   input:
