@@ -13,7 +13,6 @@ process alignProteins {
 
   tag "$fasta"
   label 'sift'
-  memory '4 GB'
   errorStrategy 'ignore'
 
   input:
@@ -45,7 +44,6 @@ process sift {
 
   tag "${aln}"
   label 'sift'
-  memory '4 GB'
   errorStrategy 'ignore'
   publishDir "${params.outdir}/sift"
 
