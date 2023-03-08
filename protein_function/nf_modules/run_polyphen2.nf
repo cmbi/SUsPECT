@@ -19,7 +19,7 @@ process pph2 {
 
   tag "${subs.chrom}-${subs.pos}-${subs.ref}-${subs.alt}-${subs.feature}"
   label 'pph2'
-  containerOptions "--bind ${params.polyphen2_data}:/opt/pph2/data
+  containerOptions "--bind ${params.polyphen2_data}:/opt/pph2/data"
   errorStrategy 'ignore'
 
   input:
