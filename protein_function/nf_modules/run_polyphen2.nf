@@ -4,8 +4,6 @@
  * Predict protein function using PolyPhen
  */
 
-params.polyphen2_data = "/hps/nobackup/flicek/ensembl/variation/nuno/sift-polyphen2-nextflow-4667/input/polyphen2"
-
 process pph2 {
   /*
   Run PolyPhen-2 on a protein sequence with a substitions file

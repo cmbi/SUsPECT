@@ -9,15 +9,13 @@ params.help = false
 params.outdir = "outdir"
 params.singularity_dir = "singularity-images"
 
-// params.gtf="input/annotation/sample.gtf"
-params.gtf="input/annotation/sample_human.gtf"
-// params.fasta="input/fasta/Canis_lupus_familiarisbasenji.Basenji_breed-1.1.dna_sm.toplevel.fa"
-params.fasta="input/fasta/Homo_sapiens.GRCh38.dna_sm.toplevel.fa"
+params.gtf=null
+params.fasta=null
 params.program="polyphen2"
 
 // SIFT-specific parameters
 params.median_cutoff = 2.75 // as per SIFT's README
-params.blastdb="input/sift/uniref100/uniref100_seg.sift.fa"
+params.blastdb=null
 blastdb_name = file(params.blastdb).name
 blastdb_dir = file(params.blastdb).parent
 
