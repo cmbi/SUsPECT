@@ -10,7 +10,6 @@ params.gtf = null
 params.vep_config = "../VEP/nf_config/vep.ini"
 params.model = "HumDiv.UniRef100.NBd.f11.model"
 
-// print usage
 if (params.help) {
   log.info """
   Pipeline to run VEP and SIFT/PolyPhen2 based on a VCF file
@@ -34,18 +33,10 @@ if (params.help) {
 include { run_vep; run_vep as run_vep_plugin } from '../VEP/workflows/run_vep.nf'
 include { append_fasta_gtf_to_config; prepare_vep_transcript_annotation; create_exclusion_variants; exclude_pathogenic; filter_common_variants } from '../VEP/nf_modules/utils.nf'
 include { pph2; weka } from '../protein_function/nf_modules/run_polyphen2.nf'
-include { create_subs } from './nf_modules/create_subs.nf'
-include { linearise_fasta; get_fasta } from './nf_modules/fasta.nf'
+include { align_peptide; sift } from '../protein_function/nf_modules/run_sift.nf'
+include { create_subs } from './nf_modules/subs.nf'
+include { linearise_fasta; filter_peptide } from './nf_modules/fasta.nf'
 include { filter_high_severity; map_individuals; add_annotations_to_indiv; get_ref_annotations; combine_custom_ref_candidates } from './nf_modules/output_filtering.nf'
-
-log.info """\
-SIFT/PPH2 prediction       v 0.1
-================================
-fasta    : $params.fasta
-gtf      : $params.gtf
-vcf      : $params.vcf
-outdir   : $params.outdir
-"""
 
 workflow predict_protein_function {
   take:
@@ -54,9 +45,6 @@ workflow predict_protein_function {
     vep_config
     protein_fasta
   main:
-    // Get translated FASTA
-    linearise_fasta( protein_fasta )
-
     // Filter out common variants
     vep_config_complete = append_fasta_gtf_to_config(vep_config, fasta, gtf)
     run_vep( file( params.vcf ), file( "${params.vcf}.tbi" ), vep_config_complete )
@@ -65,17 +53,27 @@ workflow predict_protein_function {
     filter_common_variants( exclude_pathogenic.out )
     // filter_common_variants( run_vep.out.vcfFile )
 
-    // Get substitutions
+    // Get substitutions and translated FASTA for each peptide
     create_subs( filter_common_variants.out.vep_filtered_vcf )
-    subs = create_subs.out.splitCsv(sep: "\t", header: true)
+    peptide_ids = create_subs.out.splitCsv(sep: "\t", header: true)
+                             .collect { it.feature }.flatten().unique()
+
+    linearise_fasta( protein_fasta )
+    filter_peptide(peptide_ids, linearise_fasta.out, create_subs.out )
 
     // For each transcript, predict protein function
-    pph2( linearise_fasta.out, subs )
-    weka(params.model, pph2.out.results)
-    res = weka.out.processed.collectFile(name: "weka_results.out")
+    pph2(filter_peptide.out)
+    weka(params.model, pph2.out)
+    pph2_res = weka.out.collectFile(name: "weka_results.out", keepHeader: true, skip: 1)
 
-    // Incorporate PolyPhen-2 scores into VEP
-    prepare_vep_transcript_annotation( res, vep_config_complete, file("../VEP_2_protein_function/VEP_plugins") )
+    align_peptide(filter_peptide.out,
+                  file(params.blastdb).parent, file(params.blastdb).name)
+    sift( align_peptide.out )
+    sift_res = sift.out.collectFile(name: "sift_results.out", keepHeader: true, skip: 1)
+
+    // Incorporate PolyPhen-2 and SIFT scores into VEP
+    prepare_vep_transcript_annotation( pph2_res, sift_res, vep_config_complete,
+                                       file("../VEP_2_protein_function/VEP_plugins") )
     run_vep_plugin( filter_common_variants.out.originally_benign_af_vcf,
                     filter_common_variants.out.originally_benign_af_vcf_index,
                     prepare_vep_transcript_annotation.out.first() )

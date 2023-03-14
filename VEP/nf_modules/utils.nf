@@ -23,6 +23,7 @@ process prepare_vep_transcript_annotation {
 
   input:
     file weka_out
+    file sift_out
     path vep_config
     path dir_plugins
 
@@ -32,13 +33,19 @@ process prepare_vep_transcript_annotation {
   """
   new_config="vep_config_plugin.ini"
   cp ${vep_config} \${new_config}
-
-  weka=\$(realpath ${weka_out})
-  sort -V -k1,1 -k2,2 \${weka} | bgzip > \${weka}.gz
-  tabix \${weka}.gz -b 2 -e 2
-
-  echo "plugin TranscriptAnnotator,\${weka}.gz" >> \${new_config}
   echo "dir_plugins \$(realpath ${dir_plugins})" >> \${new_config}
+
+  # Prepare PolyPhen-2 results
+  weka=\$(realpath ${weka_out})
+  sort -k1 -nk2 \${weka} | uniq | bgzip > \${weka}.gz
+  tabix \${weka}.gz -b 2 -e 2
+  echo "plugin TranscriptAnnotator,file=\${weka}.gz,prefix=PolyPhen2_" >> \${new_config}
+
+  # Prepare SIFT results
+  sift=\$(realpath ${sift_out})
+  sort -k1 -nk2 \${sift} | uniq | bgzip > \${sift}.gz
+  tabix \${sift}.gz -b 2 -e 2
+  echo "plugin TranscriptAnnotator,file=\${sift}.gz,prefix=SIFT_" >> \${new_config}
   """
 }
 
