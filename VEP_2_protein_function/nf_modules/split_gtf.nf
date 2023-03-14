@@ -4,7 +4,7 @@ process split_gtf {
   */
 
   tag "${gtf.baseName}"
-  container "quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0"
+  label 'agat'
 
   input:
     path gtf

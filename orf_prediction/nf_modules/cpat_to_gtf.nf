@@ -5,7 +5,7 @@ CDS GTF
 ---------------------------------------------------*/
 process cpat_to_bed {
   cpus 1
-  container 'rlsalz/biopj:0.1.1'
+  label 'biopj'
 
   storeDir "${params.outdir}/${params.name}/cds/"
 
@@ -25,7 +25,7 @@ process cpat_to_bed {
 process combine_bed {
   storeDir "${params.outdir}/${params.name}/final_gtf/"
   cpus 1
-  container "quay.io/biocontainers/gtfparse:1.2.1--pyh864c0ab_0"
+  label 'gtfparse'
 
   input:
       path transcript_bed
@@ -51,7 +51,7 @@ process combine_bed {
 process bed_to_genepred {
   storeDir "${params.outdir}/${params.name}/final_gtf/"
   cpus 1
-  container "quay.io/biocontainers/ucsc-bedtogenepred:377--ha8a8165_3"
+  label 'bed_to_genepred'
 
   input:
       path whole_bed
@@ -68,7 +68,7 @@ process bed_to_genepred {
 process genepred_to_gtf {
   storeDir "${params.outdir}/${params.name}/final_gtf/"
   cpus 1
-  container "quay.io/biocontainers/ucsc-genepredtogtf:377--ha8a8165_5"
+  label 'genepred_to_gtf'
 
   input:
       path sample_genepred
@@ -101,7 +101,7 @@ process add_genes {
 // process merge_cds_with_rest {
 //   publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
 //   cpus 1
-//   container 'quay.io/biocontainers/gtfparse:1.2.1--pyh864c0ab_0'
+//   label 'gtfparse'
 //   memory '16 GB'
 
 //   input:
@@ -170,7 +170,7 @@ process add_genes {
 // process create_final_gff{
 //   publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
 //   cpus 1
-//   container "quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0"
+//   label 'agat'
 //   memory '8 GB'
 
 //   input:

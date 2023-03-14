@@ -1,6 +1,6 @@
 process convert_to_bed {
   cpus 1
-  container 'quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0'
+  label 'agat'
   storeDir "${params.outdir}/${params.name}/transcriptome_fasta/"
   memory '4 GB'
 
@@ -36,7 +36,7 @@ CPAT
 ---------------------------------------------------*/
 process cpat {
   cpus 1
-  container "quay.io/biocontainers/cpat:3.0.4--py38h17adfb0_1"
+  label 'cpat'
   
   storeDir "${params.outdir}/${params.name}/cpat/"
 
@@ -59,7 +59,7 @@ process cpat {
 
 process cpat_orf_to_protein {
   cpus 1
-  container "biocontainers/emboss:v6.5.7_cv2"
+  label 'emboss'
   
   storeDir "${params.outdir}/${params.name}/cpat/"
 

@@ -28,7 +28,7 @@ process mergeVCF {
     mode:'copy'
     
   cpus params.cpus
-  container "quay.io/biocontainers/bcftools:1.15.1--h0ea216a_0"
+  label 'bcftools'
    
   input:
   path(vcfFiles)

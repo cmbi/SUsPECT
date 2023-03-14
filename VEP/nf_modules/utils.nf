@@ -19,7 +19,7 @@ process append_fasta_gtf_to_config {
 }
 
 process prepare_vep_transcript_annotation {
-  container 'quay.io/biocontainers/tabix:1.11--hdfd78af_0'
+  label 'vep'
 
   input:
     file weka_out
@@ -50,7 +50,7 @@ process prepare_vep_transcript_annotation {
 }
 
 process create_exclusion_variants {
-  container 'ensemblorg/ensembl-vep:latest'
+  label 'vep'
   storeDir "${params.outdir}/${params.name}/filtering/"
 
   input:
@@ -67,7 +67,7 @@ process create_exclusion_variants {
 }
 
 process exclude_pathogenic {
-  container 'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0'
+  label 'bedtools'
   storeDir "${params.outdir}/${params.name}/filtering/"
 
   input:
@@ -83,7 +83,7 @@ process exclude_pathogenic {
 }
 
 process filter_common_variants {
-  container 'ensemblorg/ensembl-vep:latest'
+  label 'vep'
   storeDir "${params.outdir}/${params.name}/filtering/"
 
   input:
@@ -102,7 +102,7 @@ process filter_common_variants {
 }
 
 // process filter_common_variants {
-//   container 'ensemblorg/ensembl-vep:latest'
+//   label 'vep'
 
 //   input:
 //     file vcf

@@ -6,7 +6,7 @@ For those that want to submit a full GTF file
 process identify_novel {
   publishDir "${params.outdir}/${params.name}/novel_gtf/", mode: 'copy'
   cpus 1
-  container 'quay.io/biocontainers/gffcompare:0.11.2--h6bb024c_0'
+  label 'gffcompare'
 
   input:
       path sample_gtf
@@ -25,7 +25,7 @@ process identify_novel {
 process filter_novel {
   publishDir "${params.outdir}/${params.name}/novel_gtf/", mode: 'copy'
   cpus 1
-  container 'quay.io/biocontainers/gtfparse:1.2.1--pyh864c0ab_0'
+  label 'gtfparse'
 
   input:
       path novel_marked_gtf
@@ -77,7 +77,7 @@ Clean gtf/gff file
 process clean_gxf {
   publishDir "${params.outdir}/${params.name}/novel_gtf/", mode: 'copy'
   cpus 1
-  container 'quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0'
+  label 'agat'
 
   input:
       path novel_gtf_raw
