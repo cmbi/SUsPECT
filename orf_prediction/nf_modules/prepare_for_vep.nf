@@ -1,7 +1,8 @@
 process gtf_for_vep{
     storeDir "${params.outdir}/${params.name}/final_gtf/"
     cpus 1
-    container "ensemblorg/ensembl-vep:latest"
+
+    label 'vep'
 
     input:
         path complete_gtf

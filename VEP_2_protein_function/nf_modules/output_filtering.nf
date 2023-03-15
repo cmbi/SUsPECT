@@ -1,5 +1,5 @@
 process filter_high_severity {
-  container 'ensemblorg/ensembl-vep:latest'
+  label 'vep'
 
   input:
     file annotated_vcf
@@ -16,7 +16,7 @@ process filter_high_severity {
 }
 
 // process dedup_output {
-//   container 'biocontainers/bcftools:v1.9-1-deb_cv1'
+//   label 'bcftools'
 
 //   input:
 //     tuple path(pathogenic),path(benign)
@@ -32,7 +32,7 @@ process filter_high_severity {
 // }
 
 process map_individuals {
-  container 'rlsalz/biopj:0.1.1'
+  label 'biopj'
 
   input:
   path final_vcf
@@ -47,7 +47,7 @@ process map_individuals {
 }
 
 process add_annotations_to_indiv {
-  container 'griffithlab/vatools:5.0.1'
+  label 'vatools'
 
   input:
     file annotated_vcf
@@ -62,7 +62,7 @@ process add_annotations_to_indiv {
 }
 
 process get_ref_annotations {
-  container 'griffithlab/vatools:5.0.1'
+  label 'vatools'
 
   input:
     file annotated_vcf
@@ -76,7 +76,7 @@ process get_ref_annotations {
 }
 
 process combine_custom_ref_candidates {
-  container 'rlsalz/biopj:0.1.1'
+  label 'biopj'
   publishDir "${params.outdir}/"
 
   input:

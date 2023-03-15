@@ -19,10 +19,11 @@ process append_fasta_gtf_to_config {
 }
 
 process prepare_vep_transcript_annotation {
-  container 'quay.io/biocontainers/tabix:1.11--hdfd78af_0'
+  label 'vep'
 
   input:
     file weka_out
+    file sift_out
     path vep_config
     path dir_plugins
 
@@ -32,18 +33,24 @@ process prepare_vep_transcript_annotation {
   """
   new_config="vep_config_plugin.ini"
   cp ${vep_config} \${new_config}
-
-  weka=\$(realpath ${weka_out})
-  sort -V -k1,1 -k2,2 \${weka} | bgzip > \${weka}.gz
-  tabix \${weka}.gz -b 2 -e 2
-
-  echo "plugin TranscriptAnnotator,\${weka}.gz" >> \${new_config}
   echo "dir_plugins \$(realpath ${dir_plugins})" >> \${new_config}
+
+  # Prepare PolyPhen-2 results
+  weka=\$(realpath ${weka_out})
+  sort -k1 -nk2 \${weka} | uniq | bgzip > \${weka}.gz
+  tabix \${weka}.gz -b 2 -e 2
+  echo "plugin TranscriptAnnotator,file=\${weka}.gz,prefix=PolyPhen2_" >> \${new_config}
+
+  # Prepare SIFT results
+  sift=\$(realpath ${sift_out})
+  sort -k1 -nk2 \${sift} | uniq | bgzip > \${sift}.gz
+  tabix \${sift}.gz -b 2 -e 2
+  echo "plugin TranscriptAnnotator,file=\${sift}.gz,prefix=SIFT_" >> \${new_config}
   """
 }
 
 process create_exclusion_variants {
-  container 'ensemblorg/ensembl-vep:latest'
+  label 'vep'
   storeDir "${params.outdir}/${params.name}/filtering/"
 
   input:
@@ -60,7 +67,7 @@ process create_exclusion_variants {
 }
 
 process exclude_pathogenic {
-  container 'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0'
+  label 'bedtools'
   storeDir "${params.outdir}/${params.name}/filtering/"
 
   input:
@@ -76,7 +83,7 @@ process exclude_pathogenic {
 }
 
 process filter_common_variants {
-  container 'ensemblorg/ensembl-vep:latest'
+  label 'vep'
   storeDir "${params.outdir}/${params.name}/filtering/"
 
   input:
@@ -95,7 +102,7 @@ process filter_common_variants {
 }
 
 // process filter_common_variants {
-//   container 'ensemblorg/ensembl-vep:latest'
+//   label 'vep'
 
 //   input:
 //     file vcf

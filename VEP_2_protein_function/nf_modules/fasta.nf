@@ -21,23 +21,23 @@ process linearise_fasta {
   """
 }
 
-process get_fasta {
+process filter_peptide {
   /*
-  Get FASTA sequence for sequences in substitution file
+  Filters linearlised FASTA and substitions file based on peptide identifier
   */
 
-  tag "${subs.baseName}"
+  tag "${fasta.baseName}"
 
   input:
+    val peptide_id
     path fasta
     path subs
 
   output:
-    tuple path('*.fa'), path(subs)
+    tuple val(peptide_id), path('filtered.fa'), path('filtered.subs')
 
   """
-  query=\$(awk '{print \$1}' $subs | uniq)
-  grep -A1 \$query $fasta > \$query.fa
-  rm $fasta
+  grep ${peptide_id} $subs > filtered.subs
+  grep ${peptide_id} -A1 $fasta > filtered.fa
   """
 }

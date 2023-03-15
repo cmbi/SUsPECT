@@ -15,9 +15,9 @@ process getTranslation {
   */
 
   tag "${gtf}"
-  container "quay.io/biocontainers/agat:0.9.0--pl5321hdfd78af_0"
-  memory '20 GB'
+  label 'agat'
   publishDir "${params.outdir}"
+  memory = { ["4 GB", "8 GB", "20 GB", "40 GB"][task.attempt - 1] }
 
   input:
     path gtf

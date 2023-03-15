@@ -4,32 +4,30 @@
  * Predict protein function using SIFT
  */
 
-blastdb_name = file(params.blastdb).name
-
-process alignProteins {
+process align_peptide {
   /*
   Run multiple alignment for protein sequence
   */
 
-  tag "$fasta"
-  container "nunoagostinho/sift:6.2.1"
-  memory '4 GB'
+  tag "${peptide_id}"
+  label 'sift'
   errorStrategy 'ignore'
 
   input:
-    path fasta
+    tuple val(peptide_id), path(fasta), path(subs)
     path blastdb_dir
+    val blastdb_name
 
   output:
-    path '*.alignedfasta'
+    tuple val(peptide_id), path('*.alignedfasta'), path(subs), optional: true
 
   """
   #!/bin/csh
   setenv tmpdir "."
   setenv NCBI "/opt/blast/bin/"
-  seqs_chosen_via_median_info.csh $fasta \
-                                  $blastdb_dir/$blastdb_name \
-                                  $params.median_cutoff
+  seqs_chosen_via_median_info.csh ${fasta} \
+                                  ${blastdb_dir}/${blastdb_name} \
+                                  ${params.median_cutoff}
   """
 }
 
@@ -43,20 +41,23 @@ process sift {
       1) Output 'protein.SIFTprediction'
   */
 
-  tag "${aln}"
-  container "nunoagostinho/sift:6.2.1"
-  memory '4 GB'
+  tag "${peptide_id}"
+  label 'sift'
   errorStrategy 'ignore'
-  publishDir "${params.outdir}/sift"
 
   input:
-    path aln
-    path subs
+    tuple val(peptide_id), path(aln), path(subs)
 
   output:
-    path '*.SIFTprediction'
+    path 'sift.out'
 
   """
-  info_on_seqs $aln $subs protein.SIFTprediction
+  awk '{print \$7\$6\$8}' ${subs} > var.subs
+  info_on_seqs ${aln} var.subs protein.SIFTprediction
+
+  # Clean results and append variant location and transcript identifier
+  echo "#Chrom,Pos,Ref,Alt,Transcript,Prediction,Score" |\
+    sed 's/,/\t/g' > sift.out
+  paste <(cut -f 1-5 ${subs}) <(cut -f 2-3 protein.SIFTprediction) >> sift.out
   """
 }

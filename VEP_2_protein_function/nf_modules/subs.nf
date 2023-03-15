@@ -4,8 +4,7 @@ process create_subs {
   */
 
   tag "$vcf"
-  container "quay.io/biocontainers/bcftools:1.15.1--h0ea216a_0"
-  memory '4 GB'
+  label 'bcftools'
 
   input:
     path vcf

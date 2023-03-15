@@ -1,7 +1,7 @@
 process filter_first_vep {
     publishDir "${params.outdir}/${params.name}/final_gtf/", mode: 'copy'
     cpus 1
-    container 'rlsalz/vcfparser:1.6.1'
+    label 'vcfparser'
 
     input:
       path gff3_file
