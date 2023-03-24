@@ -19,6 +19,10 @@ Running the pipeline requires:
  - [VEP cache](https://www.ensembl.org/info/docs/tools/vep/script/vep_cache.html)
  - [Singularity](https://sylabs.io/singularity/)
 
+### Installing Nextflow
+In a terminal, use the command ```java -version``` to check that you have Java >= 11. Then run ```curl -s https://get.nextflow.io | bash``` in the directory that you would like nextflow installed in.
+
+
 ## Input:
 
 The input for this pipeline is a patient (combined) VCF and a long-read transcriptome. 
