@@ -22,6 +22,45 @@ Running the pipeline requires:
 ### Installing Nextflow
 In a terminal, use the command ```java -version``` to check that you have Java >= 11. Then run ```curl -s https://get.nextflow.io | bash``` in the directory that you would like nextflow installed in.
 
+### Installing Polyphen-2 data
+For installation of Polyphen-2 data, we have made a bash script that you can run in the directory where you want the data to be located. Do bear in mind that the size of the data is about 300GB. In a terminal, run the command below in the directory where you would like your data installed:
+```sh download_pph2_data.sh```
+Give the path to this directory as input for SUsPECT (e.g. --polyphen2_data $HOME/polyphen-2.2.2/)
+
+### Installing the VEP cache
+For hg38, run the following in a terminal in the directory (e.g. $HOME/.vep) where you would like the VEP cache installed:
+```curl -O https://ftp.ensembl.org/pub/release-109/variation/indexed_vep_cache/homo_sapiens_merged_vep_109_GRCh38.tar.gz```
+Give the path to this directory as input for SUsPECT (e.g. --vep_dir_cache $HOME/.vep)
+
+### Installing singularity
+On a linux machine run the following 3 commands:
+```
+sudo apt-get update && sudo apt-get install -y \
+    build-essential \
+    uuid-dev \
+    libgpgme-dev \
+    squashfs-tools \
+    libseccomp-dev \
+    wget \
+    pkg-config \
+    git \
+    cryptsetup-bin
+    
+wget https://go.dev/dl/go1.20.2.linux-amd64.tar.gz && \
+    sudo tar -C /usr/local -xzvf go1.20.2.linux-amd64.tar.gz && \
+    rm go1.20.2.linux-amd64.tar.gz
+    
+echo 'export GOPATH=${HOME}/go' >> ~/.bashrc && \
+    echo 'export PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin' >> ~/.bashrc && \
+    source ~/.bashrc
+```
+for other platforms, please consult https://docs.sylabs.io/guides/3.5/admin-guide/installation.html.
+
+### Installing files for ORF prediction
+Click [this](https://sourceforge.net/projects/rna-cpat/files/v1.2.2/prebuilt_model/Human_Hexamer.tsv/download) and [this](https://sourceforge.net/projects/rna-cpat/files/v1.2.2/prebuilt_model/Human_logitModel.RData/download).
+Supply the path to the Human_logitModel.RData file with the --logit_model parameter and the path to Human_Hexamer.tsv file with the --hexamer parameter.
+More information about how these files help with ORF prediction can be found [here](https://cpat.readthedocs.io/en/latest/).
+
 
 ## Input:
 
