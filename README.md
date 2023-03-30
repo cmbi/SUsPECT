@@ -23,7 +23,7 @@ Running the pipeline requires:
 In a terminal, use the command ```java -version``` to check that you have Java >= 11. Then run ```curl -s https://get.nextflow.io | bash``` in the directory that you would like nextflow installed in.
 
 ### Installing Polyphen-2 data
-For installation of Polyphen-2 data, we have made a bash script that you can run in the directory where you want the data to be located. Do bear in mind that the size of the data is about 300GB. In a terminal, run the command below in the directory where you would like your data installed:
+For installation of Polyphen-2 data, we have made a bash script that you can run in the directory where you want the data to be located. Do bear in mind that the size of the data exceeds 300GB. In a terminal, run the command below in the directory where you would like your data installed:
 ```sh download_pph2_data.sh```
 Give the path to this directory as input for SUsPECT (e.g. --polyphen2_data $HOME/polyphen-2.2.2/)
 
@@ -58,7 +58,7 @@ for other platforms, please consult https://docs.sylabs.io/guides/3.5/admin-guid
 
 ### Installing files for ORF prediction
 Click [this](https://sourceforge.net/projects/rna-cpat/files/v1.2.2/prebuilt_model/Human_Hexamer.tsv/download) and [this](https://sourceforge.net/projects/rna-cpat/files/v1.2.2/prebuilt_model/Human_logitModel.RData/download).
-Supply the path to the Human_logitModel.RData file with the --logit_model parameter and the path to Human_Hexamer.tsv file with the --hexamer parameter.
+Supply the path to the Human_logitModel.RData file with the ```--logit_model``` parameter and the path to Human_Hexamer.tsv file with the ```--hexamer``` parameter.
 More information about how these files help with ORF prediction can be found [here](https://cpat.readthedocs.io/en/latest/).
 
 
