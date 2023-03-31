@@ -20,19 +20,21 @@ Running the pipeline requires:
  - [Singularity](https://sylabs.io/singularity/)
 
 ### Installing Nextflow
-In a terminal, use the command ```java -version``` to check that you have Java >= 11. Then run ```curl -s https://get.nextflow.io | bash``` in the directory that you would like nextflow installed in.
+In a terminal, use the command ```java -version``` to check that you have Java >= 11. Then run ```curl -s https://get.nextflow.io | bash``` in the directory that you would like nextflow installed in. This will install the executable ```nextflow``` needed to run the pipeline.
 
 ### Installing Polyphen-2 data
 For installation of Polyphen-2 data, we have made a bash script that you can run in the directory where you want the data to be located. Do bear in mind that the size of the data exceeds 300GB. In a terminal, run the command below in the directory where you would like your data installed:
 ```sh download_pph2_data.sh```
-Give the path to this directory as input for SUsPECT (e.g. --polyphen2_data $HOME/polyphen-2.2.2/)
+Give the path to this directory as input for SUsPECT (e.g. ```--polyphen2_data $HOME/polyphen-2.2.2/```)
 
 ### Installing the VEP cache
 For hg38, run the following in a terminal in the directory (e.g. $HOME/.vep) where you would like the VEP cache installed:
 ```curl -O https://ftp.ensembl.org/pub/release-109/variation/indexed_vep_cache/homo_sapiens_merged_vep_109_GRCh38.tar.gz```
-Give the path to this directory as input for SUsPECT (e.g. --vep_dir_cache $HOME/.vep)
+Give the path to this directory as input for SUsPECT (e.g. ```--vep_dir_cache $HOME/.vep```)
 
 For hg37, same as above but use the command ```curl -O https://ftp.ensembl.org/pub/release-109/variation/indexed_vep_cache/homo_sapiens_merged_vep_109_GRCh37.tar.gz```
+
+Note: make sure the fasta you provide to ```--genome_fasta``` matches the genome build you choose with VEP.
 
 ### Installing singularity
 On a linux machine run the following 3 commands:
