@@ -57,8 +57,7 @@ echo 'export GOPATH=${HOME}/go' >> ~/.bashrc && \
 for other platforms, please consult https://docs.sylabs.io/guides/3.5/admin-guide/installation.html.
 
 ### Installing files for ORF prediction
-Click [this](https://sourceforge.net/projects/rna-cpat/files/v1.2.2/prebuilt_model/Human_Hexamer.tsv/download) and [this](https://sourceforge.net/projects/rna-cpat/files/v1.2.2/prebuilt_model/Human_logitModel.RData/download).
-Supply the path to the Human_logitModel.RData file with the ```--logit_model``` parameter and the path to Human_Hexamer.tsv file with the ```--hexamer``` parameter.
+Supply the path to the [Human_logitModel.RData](https://sourceforge.net/projects/rna-cpat/files/v1.2.2/prebuilt_model/Human_logitModel.RData/download) file with the ```--logit_model``` parameter and the path to [Human_Hexamer.tsv](https://sourceforge.net/projects/rna-cpat/files/v1.2.2/prebuilt_model/Human_Hexamer.tsv/download) file with the ```--hexamer``` parameter.
 More information about how these files help with ORF prediction can be found [here](https://cpat.readthedocs.io/en/latest/).
 
 
