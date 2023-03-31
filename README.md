@@ -32,6 +32,8 @@ For hg38, run the following in a terminal in the directory (e.g. $HOME/.vep) whe
 ```curl -O https://ftp.ensembl.org/pub/release-109/variation/indexed_vep_cache/homo_sapiens_merged_vep_109_GRCh38.tar.gz```
 Give the path to this directory as input for SUsPECT (e.g. --vep_dir_cache $HOME/.vep)
 
+For hg37, same as above but use the command ```curl -O https://ftp.ensembl.org/pub/release-109/variation/indexed_vep_cache/homo_sapiens_merged_vep_109_GRCh37.tar.gz```
+
 ### Installing singularity
 On a linux machine run the following 3 commands:
 ```
