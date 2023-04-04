@@ -13,6 +13,9 @@ Variant effect prediction based on custom long-read transcriptomes improves clin
 
 ## Installation:
 
+Download this repository:
+```cd $HOME | git clone https://github.com/cmbi/SUsPECT```
+
 Running the pipeline requires:
  - [Nextflow](https://www.nextflow.io)
  - [Polyphen-2 data](http://genetics.bwh.harvard.edu/pph2/dokuwiki/downloads)
@@ -20,11 +23,11 @@ Running the pipeline requires:
  - [Singularity](https://sylabs.io/singularity/)
 
 ### Installing Nextflow
-In a terminal, use the command ```java -version``` to check that you have Java >= 11. Then run ```curl -s https://get.nextflow.io | bash``` in the directory that you would like nextflow installed in. This will install the executable ```nextflow``` needed to run the pipeline.
+Use the command ```java -version``` to check that you have Java >= 11. Then run ```curl -s https://get.nextflow.io | bash``` in the directory that you would like nextflow installed in. This will install the executable ```nextflow``` needed to run the pipeline.
 
 ### Installing Polyphen-2 data
 For installation of Polyphen-2 data, we have made a bash script that you can run in the directory where you want the data to be located. Do bear in mind that the size of the data exceeds 300GB. In a terminal, run the command below in the directory where you would like your data installed:
-```sh download_pph2_data.sh```
+```sh $HOME/SUsPECT/download_pph2_data.sh```
 Give the path to this directory as input for SUsPECT (e.g. ```--polyphen2_data $HOME/polyphen-2.2.2/```)
 
 ### Installing the VEP cache
