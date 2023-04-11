@@ -35,7 +35,7 @@ def helpMessage() {
       --max_memory                  Maximum memory (memory unit)
       --max_time                    Maximum time (time unit)
 
-    See here for more info: https://github.com/cmbi/VEP_custom_annotations
+    See here for more info: https://github.com/cmbi/SUsPECT
     """.stripIndent()
 }
 
