@@ -3,6 +3,7 @@
 
 Variant effect prediction based on custom long-read transcriptomes improves clinical variant annotation
 
+
 ![premise](docs/premise.png)
 
 ## Description:
@@ -127,6 +128,9 @@ The pipeline automatically downloads the required Singularity containers.
 - One annotated VCF file with variants that were within at least 1 novel transcript.
 - A tab delimited file (tsv) containing variants that were benign in the reference annotation (VEP cache) and potentially pathogenic in the custom annotation that was submitted
     - "pathogenic" refers to variants with effects that are either predicted as "moderate" or "high" impact effect according to VEP.
+## Cite:
+
+Salz, R., Saraiva-Agostinho, N., et al. SUsPECT: a pipeline for variant effect prediction based on custom long-read transcriptomes for improved clinical variant annotation. BMC Genomics 24, 305 (2023). https://doi.org/10.1186/s12864-023-09391-5
 
 ## Contact:
 
